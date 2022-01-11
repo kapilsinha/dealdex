@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { AuthContext } from "../../Context/AuthContext";
-import { Flex, Container, Box, ButtonGroup, Button, HStack, VStack, Tabs, TabList, TabPanels, Tab, TabPanel, Input, FormControl, IconButton, Center } from "@chakra-ui/react";
+import { Flex, Container, Box, ButtonGroup, Button, HStack, VStack, Tabs, TabList, TabPanels, Tab, TabPanel, Input, FormControl, IconButton } from "@chakra-ui/react";
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 
 import AccountInvestments from "./investments";
 import AccountDeals from "./deals";
+import AccountProjects from "./projects"
 
 import DatabaseService from "../../Services/DatabaseService";
 
@@ -80,7 +81,7 @@ function AccountView(props) {
                   <AccountDeals />
                 </TabPanel>
                 <TabPanel>
-                  <p>Projects!</p>
+                  <AccountProjects />
                 </TabPanel>
               </TabPanels>
             </Tabs>
