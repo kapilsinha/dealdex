@@ -116,6 +116,18 @@ const DealDexTheme = extendTheme({
       lineHeight: "133%",
       color: "black",
     },
+    labelFormStep: {
+      fontSize: "14px",
+      fontWeight: "400",
+      lineHeight: "118%",
+      color: "gray.500",
+    },
+    textFormStep: {
+      fontSize: "18px",
+      fontWeight: "700",
+      lineHeight: "129%",
+      color: "gray.700",
+    },
     statusDeal: {
       color: "red.500",
     },

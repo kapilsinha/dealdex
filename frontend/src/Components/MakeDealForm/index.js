@@ -32,6 +32,7 @@ import {useHistory} from "react-router-dom"
 import DealFormStep1 from './DealFormStep1';
 import DealFormStep2 from './DealFormStep2';
 import DealFormStep3 from './DealFormStep3';
+import DealFormStep5 from './DealFormStep5';
 import StepsComponent from './StepsComponent'; 
 
 function MakeDealForm(props) {
@@ -83,6 +84,7 @@ function MakeDealForm(props) {
                             {(activeStep === 1) &&<DealFormStep1 dealData={dealData} setDealData={setDealData} nextStep={handleNextStep}/>}
                             {(activeStep === 2) &&<DealFormStep2 dealData={dealData} setDealData={setDealData} nextStep={handleNextStep} prevStep={handlePrevStep}/>}
                             {(activeStep === 3) &&<DealFormStep3 dealData={dealData} setDealData={setDealData} nextStep={handleNextStep} prevStep={handlePrevStep}/>}
+                            {(activeStep === 5) &&<DealFormStep5 dealData={dealData} setDealData={setDealData} nextStep={handleNextStep} prevStep={handlePrevStep}/>}
                         </Box>
                     </Flex> : <Flex
                         h={{ base: 'auto' }}
