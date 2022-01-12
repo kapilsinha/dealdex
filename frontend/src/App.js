@@ -11,10 +11,11 @@ import LoginView from "./Components/LoginView"
 import HomeView from "./Components/HomeView"
 import AccountView from './Components/AccountView'
 import MakeDealForm from './Components/MakeDealForm'
-import Nav from './Components/Nav'
+import Navigation from './Components/Navigation'
 
 export const APP_ID = "U4597pIoac2usSt6amOxi7pnRlwRV8fL4fVrLOWi";
 export const SERVER_URL = "https://fspd6ypb2hac.usemoralis.com:2053/server";
+
 
 function App() {
   return (
@@ -22,7 +23,7 @@ function App() {
       <div className="App">
         <MoralisProvider appId={APP_ID} serverUrl={SERVER_URL}>
           <ChakraProvider theme={theme} options={{useSystemColorMode: true}}>        
-            <Nav />
+            <Navigation />
             <Switch>
               <Route path="/" exact>
                 <HomeView />

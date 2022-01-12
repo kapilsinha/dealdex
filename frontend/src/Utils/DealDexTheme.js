@@ -5,7 +5,7 @@ const DealDexTheme = extendTheme({
     iris: {
       80: "#7879F1",
       100: "#5D5FEF",
-    }
+    },
   },
   layerStyles: {
     dealTableWrap: {
@@ -29,7 +29,23 @@ const DealDexTheme = extendTheme({
     },
     checkboxVerifyWrap: {
       right: "-5px",
-      top:" -5px",
+      top: " -5px",
+    },
+    navWrap: {
+      height: "100px",
+      padding: "0 25px",
+      boxShadow: "md",
+      background: "white",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      color: "gray.600",
+      fontSize: "24px",
+      fontWeight: "400",
+      lineHeight: "150%",
+    },
+    cursorWrap: {
+      cursor: 'pointer'
     }
   },
   textStyles: {
@@ -101,7 +117,7 @@ const DealDexTheme = extendTheme({
       color: "black",
     },
     statusDeal: {
-      color: "red.500"
+      color: "red.500",
     },
     statusProjectMin: {
       color:"red.300",
@@ -123,7 +139,7 @@ const DealDexTheme = extendTheme({
           fontWeight: "600",
           fontSize: "18px",
           lineHeight: "129%",
-          size:'lg'
+          size: "lg",
         },
         accountEdit: {
           mt: "0px",
@@ -136,8 +152,8 @@ const DealDexTheme = extendTheme({
           lineHeight: "129%",
           border: "1px",
           borderColor: "iris.80",
-          size: 'xs',
-          borderRadius: "6px"
+          size: "xs",
+          borderRadius: "6px",
         },
         saveUserName: {
           background: "iris.80",
@@ -152,7 +168,7 @@ const DealDexTheme = extendTheme({
           fontWeight: "600",
           fontSize: "18px",
           lineHeight: "129%",
-          size:'lg'
+          size: "lg",
         },
         dealformBack: {
           background: "white",
@@ -162,7 +178,7 @@ const DealDexTheme = extendTheme({
           fontWeight: "600",
           fontSize: "18px",
           lineHeight: "129%",
-          size:'lg'
+          size: "lg",
         },
         dealform3Fee: {
           background: "#7879F1",
@@ -172,44 +188,44 @@ const DealDexTheme = extendTheme({
           fontWeight: "600",
           fontSize: "18px",
           lineHeight: "129%",
-          size:'lg'
+          size: "lg",
         },
         dealDetailTabInvest: {
           background: "white",
           color: "black",
-          size:'lg',
+          size: "lg",
           borderRadius: "10px",
-          _hover: {            
+          _hover: {
             background: "#7879F1",
             color: "white",
-          }
+          },
         },
         dealDetailTabMyInvestment: {
           background: "white",
           color: "black",
-          size:'lg',
+          size: "lg",
           borderRadius: "10px",
-          _hover: {            
+          _hover: {
             background: "blue.100",
             color: "white",
-          }
+          },
         },
         dealDetailTabInvestSel: {
           background: "#7879F1",
           color: "white",
-          size:'lg',
-          borderRadius: "10px"
+          size: "lg",
+          borderRadius: "10px",
         },
         dealDetailTabMyInvestmentSel: {
           background: "blue.100",
           color: "white",
-          size:'lg',
+          size: "lg",
           borderRadius: "10px",
         },
         dealDetailTable: {
           background: "#7879F1",
           color: "white",
-          size:'lg'
+          size: "lg",
         },
         dealForm2Details: {
           background: "#7879F1",
@@ -219,8 +235,22 @@ const DealDexTheme = extendTheme({
           fontWeight: "600",
           fontSize: "18px",
           lineHeight: "129%",
-          size:'lg'
+          size: "lg",
         },
+        connectWallet: {
+          background: "iris.100",
+          fontWeight: "600",
+          fontSize: "18px",
+          lineHeight: "129%",
+          color: "white",
+          py: "4px",
+        },
+        addresstWallet: {
+          border: "1px",
+          borderColor: "iris.100",
+          color: "iris.100",
+          background: "white",
+        }
       },
     },
     Badge: {
@@ -232,7 +262,7 @@ const DealDexTheme = extendTheme({
         verified2: {
           background: "iris.80",
           color: "white",
-          marginTop: "-20px"
+          marginTop: "-20px",
         },
       },
     },
@@ -266,11 +296,11 @@ const DealDexTheme = extendTheme({
           tbody: {
             tr: {
               _odd: {
-                background: "#EDF2F7"
-              }
-            }
-          }
-        }
+                background: "#EDF2F7",
+              },
+            },
+          },
+        },
       },
     },
     Tabs: {
@@ -280,7 +310,7 @@ const DealDexTheme = extendTheme({
             background: "white",
             borderRadius: "9999px",
             width: "auto",
-            height: '40px',
+            height: "40px",
             fontSize: "16px",
             fontWeight: "600",
             lineHeight: "124%",
@@ -288,14 +318,14 @@ const DealDexTheme = extendTheme({
             _selected: {
               background: "iris.100",
               color: "white",
-            }
+            },
           },
           tabpanel: {
             py: "30px",
-            px: 0
-          }
-        }
-      }
+            px: 0,
+          },
+        },
+      },
     },
     Container: {
       variants: {
@@ -332,8 +362,8 @@ const DealDexTheme = extendTheme({
         dealStepDesc: {
           alignItems: "flex-start",
           textAlign: "left",
-        }
-      }
+        },
+      },
     },
     FormHelperText: {
       variants: {
@@ -344,9 +374,34 @@ const DealDexTheme = extendTheme({
         dealFormError: {
           textAlign: "left",
           fontSize: "16px",
-          color: "#E53E3E"
-        }
-      }
+          color: "#E53E3E",
+        },
+      },
+    },
+    Menu: {
+      variants: {
+        selectNetWork: {
+          item: {
+            fontSize: "18px",
+            lineheight: "129%",
+            fontWeight: "400",
+            color: "gray.700",
+            _focus:{ bg: 'iris.100', color: "white" },
+            _active: { bg: 'iris.100', color: "white" }
+          },
+          button: {
+            transition: "all 0.2s",
+            borderRadius: "md",
+            borderWidth: "1px",
+            color: "gray.700",
+            borderColor: "black",
+            fontSize: "18px",
+            lineheight: "129%",
+            fontWeight: "400",
+            height: "48px"
+          },
+        },
+      },
     },
   },
 });
