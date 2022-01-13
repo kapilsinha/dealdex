@@ -13,7 +13,9 @@ function ProgressPercent(props) {
                 </Center>                                        
             </GridItem>
             <GridItem colStart={1} rowStart={1} w='100%' h='100%' textAlign="center" pt="3px">
-                <Text color="white" fontSize="sm">2k USDC Remaining</Text>                                
+                <Center w="full" h="full">
+                    <Text color="white" fontSize="sm" fontWeight="700">2k USDC Remaining</Text>   
+                </Center>             
             </GridItem>
         </Grid>
     )

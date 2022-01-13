@@ -4,7 +4,8 @@ import { ChakraProvider } from '@chakra-ui/provider'
 import { MoralisProvider } from "react-moralis";
 import theme from './Utils/DealDexTheme.js'
 
-import DealDetailsView from './Components/DealDetailsView'
+import DealDetailsViewInvestor from './Components/DealDetailsView'
+import DealDetailsViewProject from './Components/DealDetailsView/Projects'
 import PrivateRoute from "./Utils/PrivateRoute"
 import {AuthProvider} from "./Context/AuthContext"
 import LoginView from "./Components/LoginView"
@@ -36,7 +37,8 @@ function App() {
               <PrivateRoute path="/account" >
                 <AccountView  />
               </PrivateRoute>
-              <Route path="/dealDetails" component={DealDetailsView} />
+              <Route path="/dealDetailsInvestor" component={DealDetailsViewInvestor} />
+              <Route path="/dealDetailsProject" component={DealDetailsViewProject} />
               <Route path="/login" component={LoginView} />
             </Switch>
           

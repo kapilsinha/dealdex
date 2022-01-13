@@ -337,6 +337,26 @@ const DealDexTheme = extendTheme({
             px: 0,
           },
         },
+        dealDetailProjectTab: {
+          tab: {
+            background: "white",
+            borderRadius: "9999px",
+            width: "auto",
+            height: "40px",
+            fontSize: "16px",
+            fontWeight: "600",
+            lineHeight: "124%",
+            color: "gray.600",
+            _selected: {
+              background: "blue.100",
+              color: "blue.700",
+            },
+          },
+          tabpanel: {
+            py: "20px",
+            px: 0,
+          },
+        },
       },
     },
     Container: {

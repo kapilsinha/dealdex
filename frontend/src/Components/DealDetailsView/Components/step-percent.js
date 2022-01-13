@@ -10,7 +10,7 @@ const steps = [
 
 function StepPercent(props) {
     return (
-        <Grid templateColumns='repeat(4, 1fr)' gap={6} px={10} py="20px">
+        <Grid templateColumns='repeat(4, 1fr)' gap={6} px={0} py="20px">
             {steps.map(({ label, description }, index) => {
                  const date = new Date(description * 1000);
                  const desc = dateFormat(date, "paddedShortDate");
