@@ -20,9 +20,14 @@ function MyInvestment(props) {
     const { Moralis, } = useMoralis();
     async function getNFTMetadata(tokenAddress) {
         //Get metadata for one token
-        const options = { chain: "bsc", addresses: tokenAddress };
-        const tokenMetadata = await Moralis.Web3API.token.getNFTMetadata(options);
-        return tokenMetadata;
+        try {
+            const options = { chain: "bsc", addresses: tokenAddress };
+            const tokenMetadata = await Moralis.Web3API.token.getNFTMetadata(options);
+            return tokenMetadata || [];
+        }catch (error) {
+            console.log(error)
+        }
+
     }
     useEffect(()=>{
         Moralis.start({ serverUrl: SERVER_URL, appId: APP_ID });  
@@ -43,6 +48,7 @@ function MyInvestment(props) {
                             props.dealData.nftTokenArray.map((nft) => {
                                 getNFTMetadata(nft).then((metaData) => {
                                     console.log(metaData)
+                                    if(!metaData) return null
                                     return (
                                         <Tr>
                                         <Td px={2}>{metaData[0].symbol} #{metaData[0].id}</Td>

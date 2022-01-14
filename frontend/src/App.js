@@ -6,6 +6,7 @@ import theme from './Utils/DealDexTheme.js'
 
 import DealDetailsViewInvestor from './Components/DealDetailsView'
 import DealDetailsViewProject from './Components/DealDetailsView/Projects'
+import DealDetailsViewSyndicate from './Components/DealDetailsView/Syndicate'
 import PrivateRoute from "./Utils/PrivateRoute"
 import {AuthProvider} from "./Context/AuthContext"
 import LoginView from "./Components/LoginView"
@@ -39,6 +40,7 @@ function App() {
               </PrivateRoute>
               <Route path="/dealDetailsInvestor" component={DealDetailsViewInvestor} />
               <Route path="/dealDetailsProject" component={DealDetailsViewProject} />
+              <Route path="/dealDetailsSyndicate" component={DealDetailsViewSyndicate} />
               <Route path="/login" component={LoginView} />
             </Switch>
           
