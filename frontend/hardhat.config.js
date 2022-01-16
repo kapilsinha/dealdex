@@ -2,6 +2,7 @@
 // e.g. to use hre.upgrades in deploy script
 require("@nomiclabs/hardhat-waffle");
 require('@openzeppelin/hardhat-upgrades');
+require('hardhat-contract-sizer');
 
 const Moralis = require('moralis/node');
 const moralisConfig = require('../secrets/moralisConfig.json');
@@ -144,9 +145,22 @@ task("configureForTestnet", "Points web app to the ropsten firebase collection")
  */
 
 var config = {
-  solidity: "0.8.4",
+  solidity: {
+    version: "0.8.4",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
+    },
+  },
   paths: {
     artifacts: './src/artifacts',
+  },
+  contractSizer: {
+    alphaSort: true,
+    runOnCompile: true,
+    strict: true,
   },
   networks: {
     hardhat: {

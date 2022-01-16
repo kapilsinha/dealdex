@@ -12,6 +12,7 @@ import AccountView from './Components/AccountView'
 import MakeDealForm from './Components/MakeDealForm'
 import Navigation from './Components/Navigation'
 import moralisConfig from './moralisConfig.json'
+import {NetworkProvider} from './Contexts/NetworkContext'
 
 export const APP_ID = moralisConfig.APP_ID;
 export const SERVER_URL = moralisConfig.SERVER_URL;
@@ -21,25 +22,26 @@ function App() {
   return (
       <div className="App">
         <MoralisProvider appId={APP_ID} serverUrl={SERVER_URL}>
-          <ChakraProvider theme={theme} options={{useSystemColorMode: true}}>        
-            <Navigation />
-            <Switch>
-              <Route path="/" exact>
-                <HomeView />
-              </Route>
+          <ChakraProvider theme={theme} options={{useSystemColorMode: true}}>
+            <NetworkProvider>
+              <Navigation />
+              <Switch>
+                <Route path="/" exact>
+                  <HomeView />
+                </Route>
 
-              <Route path="/createDeal" >
-                <MakeDealForm />
-              </Route>
+                <Route path="/createDeal" >
+                  <MakeDealForm />
+                </Route>
 
-              <Route path="/account" >
-                <AccountView  />
-              </Route>
-              <Route path="/dealDetailsInvestor" component={DealDetailsViewInvestor} />
-              <Route path="/dealDetailsProject" component={DealDetailsViewProject} />
-              <Route path="/dealDetailsSyndicate" component={DealDetailsViewSyndicate} />
-            </Switch>
-          
+                <Route path="/account" >
+                  <AccountView  />
+                </Route>
+                <Route path="/dealDetailsInvestor" component={DealDetailsViewInvestor} />
+                <Route path="/dealDetailsProject" component={DealDetailsViewProject} />
+                <Route path="/dealDetailsSyndicate" component={DealDetailsViewSyndicate} />
+              </Switch>
+            </NetworkProvider>       
           </ChakraProvider>
         </MoralisProvider>
       </div>

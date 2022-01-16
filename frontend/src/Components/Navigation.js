@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useContext } from "react";
 import { useHistory } from "react-router-dom";
 
 import { Button, Wrap, WrapItem, Box, HStack, MenuButton, MenuList, MenuItem, Menu, useToast } from "@chakra-ui/react";
@@ -10,6 +10,7 @@ import { APP_ID, SERVER_URL } from "../App";
 import { useMoralis } from "react-moralis";
 import AuthService from "../Services/AuthService";
 import Network from "../DataModels/Network";
+import {NetworkContext} from "../Contexts/NetworkContext"
 
 const chainNetworks = [
   new Network(1, "Ethereum"),
@@ -19,7 +20,6 @@ const chainNetworks = [
 
 
 function Navigation() {
-  const [networkIndex, setNetworkIndex] = useState(0);
   const [userAddress, setUserAddress ] = useState(null);
   const [loading, setLoading ] = useState(true);
   const moralisContext = useMoralis();
@@ -27,6 +27,7 @@ function Navigation() {
   const history = useHistory();
   const [walletChain, setWalletChain] = useState(1)
 
+  const {selectedNetworkName, selectedNetworkChainId, allNetworkNames, setNetworkIndex } = useContext(NetworkContext)
 
   const onSelectNetWork = (index) => {
     AuthService.switchNetwork(moralisContext, chainNetworks[index])
@@ -35,11 +36,8 @@ function Navigation() {
 
   async function showChangeNetworkAlertIfNeeded() {
     let currentWalletChain = await AuthService.getWalletChain(moralisContext)
-
-    let selectedNetwork = chainNetworks[networkIndex]
-
-    if (currentWalletChain && (currentWalletChain != selectedNetwork.chainId)) {
-      alert("Change your network to " + selectedNetwork.name)
+    if (currentWalletChain && (currentWalletChain != selectedNetworkChainId)) {
+      alert("Change your network to " + selectedNetworkName)
     }
   }
 
@@ -59,8 +57,6 @@ function Navigation() {
 
     checkUser()
 
-
-    showChangeNetworkAlertIfNeeded()
 
     const unsubscribe = AuthService.observeWalletChain(moralisContext, (walletChain) => {
       setWalletChain(walletChain)
@@ -138,12 +134,12 @@ function Navigation() {
           <WrapItem>
             <Menu variant="selectNetWork" autoSelect={false}>
               <MenuButton px={4} py={2}>
-                {chainNetworks[networkIndex].name} <ChevronDownIcon />
+                {selectedNetworkName} <ChevronDownIcon />
               </MenuButton>
               <MenuList>
-                {chainNetworks.map((network, index) => (
-                  <MenuItem key={index} value={network.name} onClick={() => onSelectNetWork(index)}>
-                    {network.name}
+                {allNetworkNames.map((networkName, index) => (
+                  <MenuItem key={index} value={networkName} onClick={() => onSelectNetWork(index)}>
+                    {networkName}
                   </MenuItem>
                 ))}
               </MenuList>
