@@ -2,74 +2,79 @@ import {ethers, BigNumber, Signer, providers } from 'ethers';
 import {BigNumber as BigNumberJS} from "bignumber.js"
 
 class DealConfig {
-    participantAddresses: DealParticipantAddresses
-    dealExchangeRate: DealExchangeRate
+    participantAddresses: ParticipantAddresses
+    exchangeRate: ExchangeRate
     investConfig: InvestConfig
     refundConfig: RefundConfig
-    tokensConfig: TokensConfig
-    fundsConfig: FundsConfig
+    claimTokensConfig: ClaimTokensConfig
+    claimFundsConfig: ClaimFundsConfig
+    vestingSchedule: VestingSchedule
 
-    constructor(participantAddresses: DealParticipantAddresses,
-                dealExchangeRate: DealExchangeRate,
+    constructor(participantAddresses: ParticipantAddresses,
+                exchangeRate: ExchangeRate,
                 investConfig: InvestConfig,
                 refundConfig: RefundConfig,
-                tokensConfig: TokensConfig,
-                fundsConfig: FundsConfig) {
+                claimTokensConfig: ClaimTokensConfig,
+                claimFundsConfig: ClaimFundsConfig,
+                vestingSchedule: VestingSchedule) {
         this.participantAddresses = participantAddresses
-        this.dealExchangeRate = dealExchangeRate
+        this.exchangeRate = exchangeRate
         this.investConfig = investConfig
         this.refundConfig = refundConfig
-        this.tokensConfig = tokensConfig
-        this.fundsConfig = fundsConfig
+        this.claimTokensConfig = claimTokensConfig
+        this.claimFundsConfig = claimFundsConfig
+        this.vestingSchedule = vestingSchedule
     }
 
     toSmartContractInput() {
         return [
             this.participantAddresses.toSmartContractInput(),
-            this.dealExchangeRate.toSmartContractInput(),
+            this.exchangeRate.toSmartContractInput(),
             this.investConfig.toSmartContractInput(),
             this.refundConfig.toSmartContractInput(),
-            this.tokensConfig.toSmartContractInput(),
-            this.fundsConfig.toSmartContractInput()
+            this.claimTokensConfig.toSmartContractInput(),
+            this.claimFundsConfig.toSmartContractInput()
         ]
     }
 
 }
 
-class DealParticipantAddresses {
-    dealCreatorAddress: string
+class ParticipantAddresses {
+    dealDexAddress: string
+    managerAddress: string
     projectAddress: string
 
-    constructor(dealCreatorAddress: string, projectAddress: string) {
-        this.dealCreatorAddress = dealCreatorAddress
-        this.projectAddress = projectAddress
+    constructor(dealDexAddress: string | undefined, managerAddress: string | undefined, projectAddress: string | undefined) {
+        this.dealDexAddress = dealDexAddress || ""
+        this.managerAddress = managerAddress || ""
+        this.projectAddress = projectAddress || ""
     }
 
     toSmartContractInput() {
-        return [this.dealCreatorAddress, this.projectAddress];
+        return [this.dealDexAddress, this.managerAddress, this.projectAddress];
     }
 }
 
-class DealExchangeRate {
+class ExchangeRate {
     ethPerToken: string
     tickSize: BigNumber // amt of wei per
     tickValue: BigNumber // amt of token bits
 
     constructor(ethPerToken: string, tokenDecimals: number) {
         this.ethPerToken = ethPerToken;
-        [this.tickSize, this.tickValue] = DealExchangeRate.getTickSizeAndValue(ethPerToken, tokenDecimals)
+        [this.tickSize, this.tickValue] = ExchangeRate.getTickSizeAndValue(ethPerToken, tokenDecimals)
     }
 
     static init(tickSize: BigNumber, tickValue: BigNumber, tokenDecimals: number) {
-        let ethPerToken = DealExchangeRate.getEthPerToken(tickSize, tickValue, tokenDecimals)
+        let ethPerToken = ExchangeRate.getEthPerToken(tickSize, tickValue, tokenDecimals)
 
-        let exchangeRate = new DealExchangeRate(ethPerToken, tokenDecimals)
+        let exchangeRate = new ExchangeRate(ethPerToken, tokenDecimals)
 
         return exchangeRate
     }
 
     static undefined() {
-        let exchangeRate = new DealExchangeRate("0", 0)
+        let exchangeRate = new ExchangeRate("0", 0)
         exchangeRate.tickSize = BigNumber.from("0")
         exchangeRate.tickValue = BigNumber.from("0")
         return exchangeRate
@@ -112,19 +117,25 @@ class InvestConfig {
     maxTotalWei: BigNumber
     gateToken: string
     deadline: BigNumber
+    investmentTokenAddress: string
+    investmentKeyType: string
 
     constructor(minWeiPerInvestor: BigNumber, 
                 maxWeiPerInvestor: BigNumber, 
                 minTotalWei: BigNumber, 
                 maxTotalWei: BigNumber,
                 gateToken: string | undefined,
-                deadline: BigNumber) {
+                deadline: BigNumber,
+                investmentTokenAddress: string | undefined,
+                investmentKeyType: string | undefined) {
         this.gateToken = gateToken || ethers.constants.AddressZero
         this.minWeiPerInvestor = minWeiPerInvestor
         this.maxWeiPerInvestor = maxWeiPerInvestor
         this.minTotalWei = minTotalWei
         this.maxTotalWei = maxTotalWei
         this.deadline = deadline
+        this.investmentTokenAddress = investmentTokenAddress || ""
+        this.investmentKeyType = investmentKeyType || ""
     }
 
     toSmartContractInput() {
@@ -135,6 +146,8 @@ class InvestConfig {
         ]
 
         return [
+            this.investmentTokenAddress,
+            this.investmentKeyType,
             _investmentSizeConstraints, 
             /* lockConstraint = NO_CONSTRAINT */ 0, 
             /* gateToken */ this.gateToken, 
@@ -149,27 +162,50 @@ class RefundConfig {
     }
 }
 
-class TokensConfig {
-    projectToken: string
+class ClaimTokensConfig {
+    startupTokenAddress: string
+    dealdexFeeBps: number
+    managerFeeBps: number
 
-    constructor(projectToken: string | undefined) {
-        if (projectToken === undefined || projectToken === "") {
-            this.projectToken = ethers.constants.AddressZero
-        } else {
-            this.projectToken = projectToken
-        }
-    }
+    constructor(startupTokenAddress: string | undefined, dealdexFeeBps: number | undefined, managerFeeBps: number | undefined) {
+        this.startupTokenAddress = startupTokenAddress || ""        
+        this.dealdexFeeBps = dealdexFeeBps || 0
+        this.managerFeeBps = managerFeeBps || 0
+   }
 
     toSmartContractInput() {
-        return [this.projectToken, /* lockConstraint = REQUIRE_LOCKED */ 1]
+        return [this.startupTokenAddress, this.dealdexFeeBps, this.managerFeeBps, /* lockConstraint = REQUIRE_LOCKED */ 1]
     }
 }
 
-class FundsConfig {
+class ClaimFundsConfig {
+    dealdexFeeBps: number
+    managerFeeBps: number
+
+    constructor(dealdexFeeBps: number | undefined, managerFeeBps: number | undefined) {
+        this.dealdexFeeBps = dealdexFeeBps || 0
+        this.managerFeeBps = managerFeeBps || 0
+    }
+
     toSmartContractInput() {
-        return [/* feeBps */ 0, /* lockConstraint = REQUIRE_LOCKED */ 1];
+        return [this.dealdexFeeBps, this.managerFeeBps, /* lockConstraint = REQUIRE_LOCKED */ 1];
     }
 }
 
+class VestingSchedule {
+    vestingStrategy: String
+    vestingBps: number[]
+    vestingTimestamps: Date[]
 
-export {DealConfig, DealParticipantAddresses, DealExchangeRate, InvestConfig, RefundConfig, TokensConfig, FundsConfig}
+    constructor(vestingStrategy: String | undefined, vestingBps: Array<number> | undefined, vestingTimestamps: Array<Date> | undefined) {
+        this.vestingStrategy = vestingStrategy || ""
+        this.vestingBps = vestingBps || []
+        this.vestingTimestamps = vestingTimestamps || []
+    }
+
+    toSmartContractInput() {
+        return [this.vestingBps, this.vestingTimestamps, this.vestingStrategy];
+    }
+}
+
+export {DealConfig, ParticipantAddresses, ExchangeRate, InvestConfig, RefundConfig, ClaimTokensConfig, ClaimFundsConfig, VestingSchedule}

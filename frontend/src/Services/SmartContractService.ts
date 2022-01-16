@@ -8,7 +8,7 @@ import ERC20_ABI from "../ContractABIs/ERC20.json"
 import User from "../DataModels/User"
 import {ethers, BigNumber, Signer, providers } from 'ethers';
 
-import {DealConfig, DealExchangeRate} from "../DataModels/DealConfig"
+import {DealConfig, ExchangeRate} from "../DataModels/DealConfig"
 import DatabaseService from "./DatabaseService"
 
 export default class SmartContractService {
@@ -56,7 +56,7 @@ export default class SmartContractService {
         return txn
     }
 
-    static async updateProjectToken(dealContractAddress: string, newToken: String, exchangeRate: DealExchangeRate, signer: ethers.Signer) {
+    static async updateProjectToken(dealContractAddress: string, newToken: String, exchangeRate: ExchangeRate, signer: ethers.Signer) {
         const contract = new ethers.Contract(dealContractAddress, Deal.abi, signer)
         let tickDetails = exchangeRate.toSmartContractInput()
         let txn = await makeSafe(contract.setStartupToken)(newToken, tickDetails);

@@ -19,6 +19,15 @@ class Deal {
     gateToken?: string
     tokenPrice?: number
     vestPercent?: number
+    dealdexFeeBps?: number
+    managerFeeBps?: number
+    vestingStrategy?: string // should be an enum corresponding to the VestingStrategy in DealConfig.sol
+    vestingBps?: number[]
+    vestingTimestamps?: Date[]
+    investmentTokenAddress?: string
+    investmentKeyType?: string // should be an enum corresponding to the InvestmentKeyType in InvestmentKey.sol
+    dealdexAddress?: string
+    managerAddress?: string
 
     constructor(startup: User, 
                 investors: User[], 
@@ -36,7 +45,16 @@ class Deal {
                 ethInContract?: string,
                 gateToken?: string,
                 tokenPrice?: number,
-                vestPercent?: number) {
+                vestPercent?: number,
+                dealdexFeeBps?: number,
+                managerFeeBps?: number,
+                vestingStrategy?: string,
+                vestingBps?: number[],
+                vestingTimestamps?: Date[],
+                investmentTokenAddress?: string,
+                investmentKeyType?: string,
+                dealdexAddress?: string,
+                managerAddress?: string) {
         this.name = name
         this.dealAddress = dealAddress
         this.startup = startup
@@ -54,6 +72,15 @@ class Deal {
         this.gateToken = gateToken
         this.tokenPrice = tokenPrice
         this.vestPercent = vestPercent
+        this.dealdexFeeBps = dealdexFeeBps
+        this.managerFeeBps = managerFeeBps
+        this.vestingStrategy = vestingStrategy
+        this.vestingBps = vestingBps
+        this.vestingTimestamps = vestingTimestamps
+        this.investmentTokenAddress = investmentTokenAddress
+        this.investmentKeyType = investmentKeyType
+        this.dealdexAddress = dealdexAddress
+        this.managerAddress = managerAddress
     }
 
     static empty() {
