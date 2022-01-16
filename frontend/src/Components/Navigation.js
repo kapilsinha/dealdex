@@ -8,81 +8,37 @@ import { ConvertAddress } from '../Utils/ComponentUtils';
 
 import { APP_ID, SERVER_URL } from "../App";
 import { useMoralis } from "react-moralis";
-import AuthService from "../Services/AuthService";
 import Network from "../DataModels/Network";
 import {NetworkContext} from "../Contexts/NetworkContext"
 
-const chainNetworks = [
-  new Network(1, "Ethereum"),
-  new Network(80001, "Mumbai"),
-  new Network(1337, "Localhost")
-];
+
+const SIGN_MESSAGE = "Sign in to DealDex"
 
 
 function Navigation() {
-  const [userAddress, setUserAddress ] = useState(null);
-  const [loading, setLoading ] = useState(true);
-  const moralisContext = useMoralis();
+  const {Moralis, user, isUserUpdating, isAuthenticating, isAuthenticated, authenticate, logout} = useMoralis();
   const toast = useToast();
   const history = useHistory();
-  const [walletChain, setWalletChain] = useState(1)
 
-  const {selectedNetworkName, selectedNetworkChainId, allNetworkNames, setNetworkIndex } = useContext(NetworkContext)
+  const {selectedNetworkName, selectedNetworkChainId, allNetworkNames, setNetworkIndex, walletChain } = useContext(NetworkContext)
 
-  const onSelectNetWork = (index) => {
-    AuthService.switchNetwork(moralisContext, chainNetworks[index])
-    setNetworkIndex(index);
-  };
-
-  async function showChangeNetworkAlertIfNeeded() {
-    let currentWalletChain = await AuthService.getWalletChain(moralisContext)
-    if (currentWalletChain && (currentWalletChain != selectedNetworkChainId)) {
+  useEffect(() => {
+    if (walletChain && (walletChain != selectedNetworkChainId)) {
       alert("Change your network to " + selectedNetworkName)
     }
-  }
-
-  useEffect(() => {
-
-    async function checkUser() {
-
-      await AuthService.initializeMoralis(moralisContext)
-      const currentUser = await AuthService.getCurrentUser(moralisContext)
-      if (currentUser) {
-        setUserAddress(currentUser.address)
-      }
-      setLoading(false)
-
-      
-    }
-
-    checkUser()
-
-
-    const unsubscribe = AuthService.observeWalletChain(moralisContext, (walletChain) => {
-      setWalletChain(walletChain)
-    })
-
-    return unsubscribe
-  }, []);
-
-  useEffect(() => {
-    showChangeNetworkAlertIfNeeded()
   }, [walletChain])
 
   const onLogin = async () => {
-    setLoading(true)
     try {
 
-      await AuthService.login(moralisContext)
-      const user = await AuthService.getCurrentUser(moralisContext)
-      setUserAddress(user.address)
+      await authenticate({ signingMessage: SIGN_MESSAGE })
+
       toast({
         title: "Connect Wallet Success",
         status: "success",
         isClosable: true,
         position: "bottom-right",
       });
-      setLoading(false)
     } catch (err) {
       toast({
         title: err.message,
@@ -90,21 +46,17 @@ function Navigation() {
         isClosable: true,
         position: "bottom-right",
       });
-      setLoading(false)
     }
   };
 
   const onDisconnect = async () => {
-    setLoading(true)
-    await AuthService.logout(moralisContext)
-    setUserAddress(null)
+    await logout()
     toast({
       title: "Disconnect Wallet Success",
       status: "success",
       isClosable: true,
       position: "bottom-right",
     });
-    setLoading(false)
   }
 
 
@@ -138,18 +90,18 @@ function Navigation() {
               </MenuButton>
               <MenuList>
                 {allNetworkNames.map((networkName, index) => (
-                  <MenuItem key={index} value={networkName} onClick={() => onSelectNetWork(index)}>
+                  <MenuItem key={index} value={networkName} onClick={() => setNetworkIndex(index) }>
                     {networkName}
                   </MenuItem>
                 ))}
               </MenuList>
             </Menu>
           </WrapItem>
-          { userAddress ? (
+          { isAuthenticated ? (
             <WrapItem>
               <Menu variant="selectNetWork" autoSelect={false}>
-                <MenuButton isLoading={loading} variant="addresstWallet" size="lg" as={Button} px={4} py={2}>
-                  <ConvertAddress address={userAddress} />{}
+                <MenuButton isLoading={isAuthenticating} variant="addresstWallet" size="lg" as={Button} px={4} py={2}>
+                  <ConvertAddress address={user.get('ethAddress')} />{}
                 </MenuButton>
                 <MenuList>
                   <MenuItem onClick={() => history.push("/account")}> Accounts </MenuItem>
@@ -159,7 +111,7 @@ function Navigation() {
             </WrapItem>
           ) : (
             <WrapItem>
-              <Button variant="connectWallet" size="lg" isLoading={loading} onClick={onLogin}>
+              <Button variant="connectWallet" size="lg" isLoading={isAuthenticating} onClick={onLogin}>
                 Connect Wallet
               </Button>
             </WrapItem>
