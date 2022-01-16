@@ -2,7 +2,7 @@ import {ethers, BigNumber, Signer, providers } from 'ethers';
 import {BigNumber as BigNumberJS} from "bignumber.js"
 import User from '../DataModels/User';
 import {Deal} from '../DataModels/DealData'
-import {DealConfig, DealParticipantAddresses, DealExchangeRate, InvestConfig, RefundConfig, TokensConfig, FundsConfig} from '../DataModels/DealConfig'
+import {DealConfig, ParticipantAddresses, ExchangeRate, InvestConfig, RefundConfig, ClaimTokensConfig, ClaimFundsConfig, VestingSchedule} from '../DataModels/DealConfig'
 import SmartContractService from "./SmartContractService"
 
 
@@ -48,20 +48,22 @@ export default class DealService {
 
         const gateToken = dealData.gateToken
 
-        let dealParticipantAddresses = new DealParticipantAddresses(creatorAddress, startupAddress)
+        let participantAddresses = new ParticipantAddresses(dealData.dealdexAddress, dealData.managerAddress, startupAddress)
         let exchangeRateConfig = await getTickDetailsConfig(dealData, user)
-        let investConfig = new InvestConfig(minWeiPerInvestor, maxWeiPerInvestor, minTotalWei, maxTotalWei, gateToken, deadline)
+        let investConfig = new InvestConfig(minWeiPerInvestor, maxWeiPerInvestor, minTotalWei, maxTotalWei, gateToken, deadline, dealData.investmentTokenAddress, dealData.investmentKeyType)
         let refundConfig = new RefundConfig()
-        let tokensConfig = new TokensConfig(dealData.startupTokenAddress)
-        let fundsConfig = new FundsConfig()
+        let claimTokensConfig = new ClaimTokensConfig(dealData.startupTokenAddress, dealData.dealdexFeeBps, dealData.managerFeeBps)
+        let claimFundsConfig = new ClaimFundsConfig(dealData.dealdexFeeBps, dealData.managerFeeBps)
+        let vestingSchedule = new VestingSchedule(dealData.vestingStrategy, dealData.vestingBps, dealData.vestingTimestamps)
 
         let dealConfig = new DealConfig(
-            dealParticipantAddresses,
+            participantAddresses,
             exchangeRateConfig,
             investConfig,
             refundConfig,
-            tokensConfig,
-            fundsConfig 
+            claimTokensConfig,
+            claimFundsConfig,
+            vestingSchedule
         )
 
         const dealFactoryAddress = await DatabaseService.getDealFactoryAddress()
@@ -99,7 +101,7 @@ export default class DealService {
         const tickSize = config.tickDetails.tickSize
         const tickValue = config.tickDetails.tickValue
 
-        const startupTokenAddress = config.tokensConfig.startupTokenAddress
+        const startupTokenAddress = config.claimTokensConfig.startupTokenAddress
 
         const gateToken = config.investConfig.gateToken
 
@@ -251,24 +253,24 @@ function isInvalidAddress(address: any) {
 
 
 // tickSize is in wei. tickValue is in tokenBits.
-async function getTickDetailsConfig(dealData: Deal, user: User): Promise<DealExchangeRate> {
+async function getTickDetailsConfig(dealData: Deal, user: User): Promise<ExchangeRate> {
     let startupTokenAddress = dealData.startupTokenAddress
 
     if (isInvalidAddress(dealData.startupTokenAddress)) {
-        return DealExchangeRate.undefined()
+        return ExchangeRate.undefined()
     }
 
     if (dealData.ethPerToken === undefined) {
-        return DealExchangeRate.undefined()
+        return ExchangeRate.undefined()
     }
 
     let signer = await SmartContractService.getSignerForUser(user)
     const decimals = await SmartContractService.getERC20Decimals(startupTokenAddress!, signer!)
 
     if (decimals === undefined) {
-        return DealExchangeRate.undefined()
+        return ExchangeRate.undefined()
     }
-    let result = new DealExchangeRate(dealData.ethPerToken, decimals)
+    let result = new ExchangeRate(dealData.ethPerToken, decimals)
     return result
 }
 
