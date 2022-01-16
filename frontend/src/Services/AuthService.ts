@@ -66,9 +66,9 @@ export default class AuthService {
         const {Moralis} = moralisContext
 
         let m = (Moralis as any)
-        m.enableWeb3()
+        await m.enableWeb3()
 
-        const chainId = await (Moralis as any).getChainId()
+        const chainId = await m.getChainId()
         return (chainId as Number)
     }
     
