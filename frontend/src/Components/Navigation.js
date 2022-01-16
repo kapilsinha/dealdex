@@ -8,67 +8,78 @@ import { ConvertAddress } from '../Utils/ComponentUtils';
 
 import { APP_ID, SERVER_URL } from "../App";
 import { useMoralis } from "react-moralis";
+import AuthService from "../Services/AuthService";
+import Network from "../DataModels/Network";
 
-const CHAIN_NETWORK = [
-  {
-    name: "Ethereum",
-    preFix: "eth",
-  },
-  {
-    name: "Binance Smart Chain",
-    preFix: "bsc",
-  },
-  {
-    name: "Polygon (Matic)",
-    preFix: "polygon",
-  },
-  {
-    name: "Solana",
-    preFix: "sol",
-  },
-  {
-    name: "Elrond",
-    preFix: "erd",
-  },
+const chainNetworks = [
+  new Network(1, "Ethereum"),
+  new Network(80001, "Mumbai"),
+  new Network(1337, "Localhost")
 ];
 
-const SIGN_MESSAGE = "Wellcome to DealDex";
 
 function Navigation() {
-  const [network, setNetWork] = useState("eth");
+  const [networkIndex, setNetworkIndex] = useState(0);
   const [userAddress, setUserAddress ] = useState(null);
-  const [loading, setLoading ] = useState(false);
-  const { Moralis } = useMoralis();
+  const [loading, setLoading ] = useState(true);
+  const moralisContext = useMoralis();
   const toast = useToast();
   const history = useHistory();
+  const [walletChain, setWalletChain] = useState(1)
 
-  const dataNetwork = useMemo(() => CHAIN_NETWORK, []);
 
-  const onSelectNetWork = (network) => {
-    setNetWork(network.preFix);
+  const onSelectNetWork = (index) => {
+    AuthService.switchNetwork(moralisContext, chainNetworks[index])
+    setNetworkIndex(index);
   };
 
-  const getNameNetwork = (preFix) => {
-    const network = dataNetwork.find((i) => i.preFix === preFix);
-    return network ? network.name : "";
-  };
+  async function showChangeNetworkAlertIfNeeded() {
+    let currentWalletChain = await AuthService.getWalletChain(moralisContext)
+
+    let selectedNetwork = chainNetworks[networkIndex]
+
+    if (currentWalletChain && (currentWalletChain != selectedNetwork.chainId)) {
+      alert("Change your network to " + selectedNetwork.name)
+    }
+  }
 
   useEffect(() => {
-    Moralis.start({ serverUrl: SERVER_URL, appId: APP_ID });
 
-    const currentUser = Moralis.User.current();
-    if(currentUser) {
-      const authData = Object.values(currentUser.get("authData"))[0];
-      setUserAddress(authData.id)
+    async function checkUser() {
+
+      await AuthService.initializeMoralis(moralisContext)
+      const currentUser = await AuthService.getCurrentUser(moralisContext)
+      if (currentUser) {
+        setUserAddress(currentUser.address)
+      }
+      setLoading(false)
+
+      
     }
+
+    checkUser()
+
+
+    showChangeNetworkAlertIfNeeded()
+
+    const unsubscribe = AuthService.observeWalletChain(moralisContext, (walletChain) => {
+      setWalletChain(walletChain)
+    })
+
+    return unsubscribe
   }, []);
+
+  useEffect(() => {
+    showChangeNetworkAlertIfNeeded()
+  }, [walletChain])
 
   const onLogin = async () => {
     setLoading(true)
     try {
-      const user = await Moralis.authenticate({ type: network, signingMessage: SIGN_MESSAGE });
-      const authData = Object.values(user.get("authData"))[0];
-      setUserAddress(authData.id)
+
+      await AuthService.login(moralisContext)
+      const user = await AuthService.getCurrentUser(moralisContext)
+      setUserAddress(user.address)
       toast({
         title: "Connect Wallet Success",
         status: "success",
@@ -89,7 +100,7 @@ function Navigation() {
 
   const onDisconnect = async () => {
     setLoading(true)
-    await Moralis.User.logOut()
+    await AuthService.logout(moralisContext)
     setUserAddress(null)
     toast({
       title: "Disconnect Wallet Success",
@@ -127,11 +138,11 @@ function Navigation() {
           <WrapItem>
             <Menu variant="selectNetWork" autoSelect={false}>
               <MenuButton px={4} py={2}>
-                {getNameNetwork(network)} <ChevronDownIcon />
+                {chainNetworks[networkIndex].name} <ChevronDownIcon />
               </MenuButton>
               <MenuList>
-                {dataNetwork.map((network, index) => (
-                  <MenuItem key={index} value={network.preFix} onClick={() => onSelectNetWork(network)}>
+                {chainNetworks.map((network, index) => (
+                  <MenuItem key={index} value={network.name} onClick={() => onSelectNetWork(index)}>
                     {network.name}
                   </MenuItem>
                 ))}

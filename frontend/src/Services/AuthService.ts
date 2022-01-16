@@ -5,73 +5,87 @@ import { getFirestore } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getAuth, signInWithCustomToken } from "firebase/auth";
 import {ethers} from 'ethers';
+import { useMoralis, MoralisContextValue } from "react-moralis";
+import User from "../DataModels/User"
+import Moralis from "moralis"
+import Network from "../DataModels/Network"
 
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-// Firestore
-const db = getFirestore(app);
-// Cloud Functions
-const functions = getFunctions();
-const auth = getAuth(app);
+
+import moralisConfig from '../moralisConfig.json'
+
+const APP_ID = moralisConfig.APP_ID;
+const SERVER_URL = moralisConfig.SERVER_URL;
+
+const SIGN_MESSAGE = "Sign in to DealDex"
 
 
 export default class AuthService {
-    
 
-    static async fbSignOut() {
-        await getAuth().signOut()
+    static async login(moralisContext: MoralisContextValue) {
+        const {Moralis} = moralisContext
+
+        const user = await (Moralis as any).authenticate({ signingMessage: SIGN_MESSAGE })
     }
-    
-    static async fbOnAuthStateChanged(handleUser: any) {
-        return getAuth().onAuthStateChanged((fbUser) => {
-            if (fbUser) {
-                handleUser(fbUser.uid)
-            } else {
-                handleUser(null)
-            }
-        })
-    }
-    
-    static async fbSignIn(ethereum: any) {
-        if (!ethereum) {
-            console.log("No ethereum wallet in browser");
-            return;
-        }   
-        await ethereum.request({ method: 'eth_requestAccounts' }); 
-        const provider = new ethers.providers.Web3Provider(ethereum);
-        const signer = provider.getSigner();
-        const address = await signer.getAddress();
-        const utcMillisSinceEpoch = new Date().getTime();
-        let rawMessage = `Please verify you own address ${address} [epoch time = ${utcMillisSinceEpoch}]`;
-        let signature = await signer.signMessage(rawMessage);
+
+    static async getCurrentUser(moralisContext: MoralisContextValue) {
+        const {Moralis} = moralisContext
         
-        await fbSignInHelper(rawMessage, signature, address, utcMillisSinceEpoch);
+        const currentUser = Moralis.User.current()
+
+        if (currentUser) {
+            const address = currentUser.get('ethAddress')
+            return new User(address, "anonymous", [], [], [], [])
+        } else {
+            return null
+        }
     }
 
-}
+    static async switchNetwork(moralisContext: MoralisContextValue, toNetwork: Network) { 
+        const {Moralis} = moralisContext
+
+        let m = (Moralis as any)
+        m.enableWeb3()
+
+        await (Moralis as any).switchNetwork(toNetwork.chainId)
+    }
+
+    static observeWalletChain(moralisContext: MoralisContextValue, callback: (chain: string)=>void) {
+        const {Moralis} = moralisContext
+
+        let m = (Moralis as any)
+        m.enableWeb3()
+
+        const unsubscribe = (Moralis as any).onChainChanged(callback)
+
+        return unsubscribe
+
+    }
+
+    static async getWalletChain(moralisContext: MoralisContextValue) {
+        const {Moralis} = moralisContext
+
+        let m = (Moralis as any)
+        m.enableWeb3()
+
+        const chainId = await (Moralis as any).getChainId()
+        return (chainId as Number)
+    }
+    
+    static async logout(moralisContext: MoralisContextValue) {
+        const {Moralis} = moralisContext
+
+        await Moralis.User.logOut()
+    }
+
+    static async initializeMoralis(moralisContext: MoralisContextValue) {
+        const {Moralis} = moralisContext
+
+        Moralis.start({ serverUrl: SERVER_URL, appId: APP_ID })
+
+        let m = (Moralis as any)
+        await m.enableWeb3()
+    }
 
 
-/* CLOUD FUNCTIONS */
-async function fbSignInHelper(rawMessage: any, signature: any, address: any, time: any) {
-    let authCloudFunc = httpsCallable(functions, "getAuthToken");
-    authCloudFunc({ rawMessage : rawMessage, signature : signature, address : address, time : time})
-        .then((result: any) => {
-            let token = result.data.token;
-            if (token == null) {
-                console.log("Failed to authenticate as address", address);
-                return;
-            }
-            signInWithCustomToken(auth, token)
-               	.then((userCredential) => {
-                    // Signed in
-                    let user = userCredential.user;
-                    console.log("Signed in as", user);
-                })
-                .catch((error) => {
-                    let errorCode = error.code;
-                    let errorMessage = error.message;
-                    console.log("Failed to sign in with error", errorCode, "->", errorMessage);
-                });
-        });
 }

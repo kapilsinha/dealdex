@@ -46,7 +46,6 @@ import {
     Center
   } from '@chakra-ui/react';
   
-import {AuthContext} from "../../Context/AuthContext"
 import DealService from '../../Services/DealService';
 import AuthService from '../../Services/AuthService'
 import DatabaseService from '../../Services/DatabaseService';
@@ -57,10 +56,9 @@ import Invest from './Components/invest';
 import MyInvestment from './Components/my-investment';
 
 function DealDetailsView(props) {
-    const {userAddress, loading} = React.useContext(AuthContext)
     var user = undefined
-    if (userAddress) {
-        user = User.empty(userAddress)
+    if ("userAddress") {
+        user = User.empty("userAddress")
     } 
     let history = useHistory()
     const search = useLocation().search
@@ -232,7 +230,6 @@ function DealDetailsView(props) {
 
     const dealState = getDealState(dealData);
 
-    console.log(userAddress, loading)
     return(
         <Container maxW="container.xl" p={0}>
             <Flex position="fixed" top='0px' backgroundColor="white" w="container.xl" >

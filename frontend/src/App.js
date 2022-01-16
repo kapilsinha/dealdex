@@ -7,21 +7,18 @@ import theme from './Utils/DealDexTheme.js'
 import DealDetailsViewInvestor from './Components/DealDetailsView'
 import DealDetailsViewProject from './Components/DealDetailsView/Projects'
 import DealDetailsViewSyndicate from './Components/DealDetailsView/Syndicate'
-import PrivateRoute from "./Utils/PrivateRoute"
-import {AuthProvider} from "./Context/AuthContext"
-import LoginView from "./Components/LoginView"
 import HomeView from "./Components/HomeView"
 import AccountView from './Components/AccountView'
 import MakeDealForm from './Components/MakeDealForm'
 import Navigation from './Components/Navigation'
+import moralisConfig from './moralisConfig.json'
 
-export const APP_ID = "U4597pIoac2usSt6amOxi7pnRlwRV8fL4fVrLOWi";
-export const SERVER_URL = "https://fspd6ypb2hac.usemoralis.com:2053/server";
+export const APP_ID = moralisConfig.APP_ID;
+export const SERVER_URL = moralisConfig.SERVER_URL;
 
 
 function App() {
   return (
-    <AuthProvider>
       <div className="App">
         <MoralisProvider appId={APP_ID} serverUrl={SERVER_URL}>
           <ChakraProvider theme={theme} options={{useSystemColorMode: true}}>        
@@ -35,19 +32,17 @@ function App() {
                 <MakeDealForm />
               </Route>
 
-              <PrivateRoute path="/account" >
+              <Route path="/account" >
                 <AccountView  />
-              </PrivateRoute>
+              </Route>
               <Route path="/dealDetailsInvestor" component={DealDetailsViewInvestor} />
               <Route path="/dealDetailsProject" component={DealDetailsViewProject} />
               <Route path="/dealDetailsSyndicate" component={DealDetailsViewSyndicate} />
-              <Route path="/login" component={LoginView} />
             </Switch>
           
           </ChakraProvider>
         </MoralisProvider>
       </div>
-    </AuthProvider>
   );
 }
 

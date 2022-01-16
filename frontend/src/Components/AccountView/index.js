@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { AuthContext } from "../../Context/AuthContext";
 import { Flex, Container, Box, ButtonGroup, Button, HStack, VStack, Tabs, TabList, TabPanels, Tab, TabPanel, Input, FormControl, IconButton } from "@chakra-ui/react";
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 
@@ -12,7 +11,6 @@ import DatabaseService from "../../Services/DatabaseService";
 import { ConvertAddress } from "../../Utils/ComponentUtils";
 
 function AccountView(props) {
-  const { userAddress, loading } = React.useContext(AuthContext);
   const [dealsWhereStartup, setDealsWhereStartup] = useState([]);
   const [dealsWhereInvestor, setDealsWhereInvestor] = useState([]);
   const [pendingDealsWhereStartup, setPendingDealsWhereStartup] = useState([]);
@@ -25,7 +23,7 @@ function AccountView(props) {
   useEffect(() => {
     async function fetchDeals() {
       try {
-        let user = await DatabaseService.getUser(userAddress);
+        let user = await DatabaseService.getUser("userAddress");
         let deals = await user.getDealsWhereStartup();
 
         let startupPendingDeals = await user.getPendingDealsWhereStartup();
@@ -62,7 +60,7 @@ function AccountView(props) {
               )}
             </HStack>
             <Box textAlign="left" textStyle="addressWallet">
-              <ConvertAddress address={userAddress} />
+              <ConvertAddress address={"userAddress"} />
             </Box>
           </Box>
 
@@ -75,7 +73,7 @@ function AccountView(props) {
               </TabList>
               <TabPanels>
                 <TabPanel>
-                  <AccountInvestments userAddress={userAddress} />
+                  <AccountInvestments userAddress={"userAddress"} />
                 </TabPanel>
                 <TabPanel>
                   <AccountDeals />

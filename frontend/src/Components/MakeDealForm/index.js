@@ -26,7 +26,6 @@ import {
 import { CalendarIcon, CheckCircleIcon } from '@chakra-ui/icons';
 
 import "react-datepicker/dist/react-datepicker.css";
-import {AuthContext} from "../../Context/AuthContext"
 import {useHistory} from "react-router-dom"
 
 import DealFormStep1 from './DealFormStep1';
