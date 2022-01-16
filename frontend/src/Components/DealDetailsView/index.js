@@ -47,7 +47,6 @@ import {
   } from '@chakra-ui/react';
   
 import DealService from '../../Services/DealService';
-import AuthService from '../../Services/AuthService'
 import DatabaseService from '../../Services/DatabaseService';
 import User from "../../DataModels/User"
 import StepPercent from './Components/step-percent';
@@ -331,14 +330,15 @@ function DealDetailsView(props) {
                                                 Connect Metamask
                                             </Button>
                                         } */}
-                                        {!login ? 
+                                        {/* !login ? 
                                             <Button variant="dealDetailTable" onClick={() => AuthService.fbSignIn(window.ethereum)}>
                                                 Connect Metamask
                                             </Button> :
                                             <Button variant="dealDetailTable" onClick={() => handleInvest()}>
                                                 Invest
                                             </Button>
-                                        }
+                                        // TODO: update for fbSignIn
+                                        */}
                                     </Center>
                                 </> : <>
                                     <MyInvestment dealData={dealData} setDealData={setDealData}/>
