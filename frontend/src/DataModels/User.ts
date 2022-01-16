@@ -1,71 +1,83 @@
 import {ethers, Signer} from 'ethers';
 import {Deal} from './DealData';
-import PendingDealData from './PendingDealData';
+import PendingDeal from './PendingDeal';
 import DealFactory from '../artifacts/contracts/PogDeal.sol/DealFactory.json'
 import DealService from '../Services/DealService';
 import DatabaseService from '../Services/DatabaseService'
 import { DealParticipantAddresses } from './DealConfig';
 import DealMetadata from './DealMetadata';
 import SmartContractService from '../Services/SmartContractService';
+import Moralis from "moralis";
 
-export default class User {
-    address: string
-    name: string
-    dealsWhereStartup: string[]
-    dealsWhereInvestor: string[]
-    pendingDealsWhereStartup: string[]
-    pendingDealsWhereInvestor: string[]
-
-    constructor(address: string, 
-                name: string, 
-                dealsWhereStartup: string[], 
-                dealsWhereInvestor: string[], 
-                pendingDealsWhereStartup: string[],
-                pendingDealsWhereInvestor: string[]) {
-        this.address = address
-        this.name = name
-        this.dealsWhereStartup = dealsWhereStartup
-        this.dealsWhereInvestor = dealsWhereInvestor
-        this.pendingDealsWhereStartup = pendingDealsWhereStartup
-        this.pendingDealsWhereInvestor = pendingDealsWhereInvestor
+export default class User extends Moralis.User {
+    // TODO: Can I make this private?
+    constructor(attrs: Object) {
+        super(attrs)
     }
 
-    async createIfNecessary() {
-        await DatabaseService.getUser(this.address)
+    static createUser(
+        address: string, 
+        username: string
+       )
+    {
+        let user = new User({
+            address: address,
+            username: username
+        })
+        user.set("dealsWhereProject", [])
+        user.set("dealsWhereManager", [])
+        // TODO: add verified status etc
+        user.set("dealAndInvestments", [])
+        user.set("pendingDealsCreated", [])
+        return user
     }
 
-    async getDealsWhereStartup() {
+    async refresh() {
+        await this.fetch();
+    }
+
+    async getDealsWhereProject() {
+        return []
+        // TODO: reinstate after pulling in changes
+        /*
         let result: Deal[] = []
-        let user = await DatabaseService.getUser(this.address)
-        if (user !== undefined && user.dealsWhereStartup !== undefined) {
-            let addresses = user.dealsWhereStartup
-            for(var address of addresses) {
-                let deal = Deal.empty()
-                deal.dealAddress = address
-                await DealService.initWithFirebase(deal)
-                result.push(deal)
-            }
-        } 
-        return result
+        await this.refresh()
+
+        let deals = this.get("dealsWhereProject")
+        for(let dealAddress of dealAddresses) {
+            let deal = Deal.empty()
+            deal.dealAddress = dealAddress
+            // Below function call updates the deal variable
+            await DealService.initWithFirebase(deal)
+            result.push(deal)
+        }
+        */
     }
 
+    /*
     async getPendingDealsWhereStartup() {
-        let result: PendingDealData[] = []
-        let user = await DatabaseService.getUser(this.address)
-        if (user !== undefined && user.pendingDealsWhereStartup !== undefined) {
-            let pendingDeals: any = user.pendingDealsWhereStartup
-            for(let transactionHash in pendingDeals) {
-                let name = pendingDeals[transactionHash]['name']
-                let startupAddress = pendingDeals[transactionHash]['startupAddress']
-                let deal = new PendingDealData(name, startupAddress, transactionHash)
-                result.push(deal)
-                resolvePendingDeal(deal, this.address, name)
-            }
-        } 
+        let result: PendingDeal[] = []
+        await this.refresh()
+
+        let pendingDeals: PendingDeal[] = this.get("pendingDealsWhereStartup")
+        // We do NOT fetch/refresh each pendingDeal because those should never change
+        // (just the list should grow or shrink)
+        for(let transactionHash in pendingDeals) {
+            let name = pendingDeals[transactionHash]['name']
+            let startupAddress = pendingDeals[transactionHash]['startupAddress']
+            let deal = new PendingDeal(name, startupAddress, transactionHash)
+            result.push(deal)
+            resolvePendingDeal(deal, this.address, name)
+        }
         return result
     }
+    */
 
+    // TODO: need to pass in list of NFTs to this function
     async getDealsWhereInvestor() {
+        return []
+        // TODO: reinstate after pulling in changes
+        /*
         let result: Deal[] = []
         let user = await DatabaseService.getUser(this.address)
         if (user !== undefined && user.dealsWhereInvestor !== undefined) {
@@ -78,51 +90,41 @@ export default class User {
             }
         } 
         return result
+        */
     }
 
+    /*
     async getPendingDealsWhereInvestor() {
-        let result: PendingDealData[] = []
+        let result: PendingDeal[] = []
         let user = await DatabaseService.getUser(this.address)
         if (user !== undefined && user.pendingDealsWhereInvestor !== undefined) {
             let pendingDeals: any = user.pendingDealsWhereInvestor
             for(let transactionHash in pendingDeals) {
                 let name = pendingDeals[transactionHash]['name']
                 let startupAddress = pendingDeals[transactionHash]['startupAddress']
-                let deal = new PendingDealData(name, startupAddress, transactionHash)
+                let deal = new PendingDeal(name, startupAddress, transactionHash)
                 result.push(deal)
                 resolvePendingDeal(deal, this.address, name)
             }
         } 
         return result
     }
-
-    isStartup(inDeal: Deal) {
-        console.log(this.address)
-        console.log(inDeal.startup.address)
-        return (this.address == inDeal.startup.address) 
-    }
-
-    isInvestor(inDeal: Deal) {
-        for (var investor of inDeal.investors) {
-            if (this.address == investor.address) {
-                return true
-            }
-        }
-        return false
-    }
+    */
 
     static empty(address?: string) {
-        if (address === undefined ) {
-            return new User("", "", [], [], [], [])
-        } else {
-            return new User(address, "", [], [], [], [])
-        }
+        return User.createUser((address === undefined ? "" : address), "")
+    }
+
+    static anonymous(address: string) {
+        return User.createUser(address, "anonymous")
     }
 }
+Moralis.Object.registerSubclass('_User', User)
 
 // Helpers
 
-async function resolvePendingDeal(dealData: PendingDealData, creatorAddress: string, dealName: string) {
+/*
+async function resolvePendingDeal(dealData: PendingDeal, creatorAddress: string, dealName: string) {
 
     let transactionHash = dealData.transactionHash
     let startupAddress = dealData.startupAddress
@@ -144,9 +146,8 @@ async function resolvePendingDeal(dealData: PendingDealData, creatorAddress: str
             new DealMetadata(dealName, dealAddress)
         )
 
-        await DatabaseService.removePendingDealRecord(
-            dealParticipants,
-            transactionHash
-        )
+        // TODO: this should be done by Moralis backend
+        // await DatabaseService.removePendingDealRecord(transactionHash)
     }
 }
+*/

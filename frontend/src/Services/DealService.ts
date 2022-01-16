@@ -72,13 +72,15 @@ export default class DealService {
         }
 
         let txn = await SmartContractService.createDeal(dealFactoryAddress!, signer!, dealConfig)
-        if (txn.error == null) {
-            await DatabaseService.recordPendingDeal(
-                dealConfig,
-                new DealMetadata(dealData.name!),
-                txn.hash
-            )
-        }
+        /// TODO: This should be done in Moralis backend
+        // if (txn.error == null) {
+        //     await DatabaseService.recordPendingDeal(
+        //         user,
+        //         dealConfig,
+        //         new DealMetadata(dealData.name!),
+        //         txn.hash
+        //     )
+        // }
         return txn;
     } 
 
@@ -159,10 +161,11 @@ export default class DealService {
         const maxWeiAmount = ethers.utils.parseEther(dealData.maxInvestmentPerInvestor!)
 
         let txn = await SmartContractService.invest(dealData.dealAddress!, signer, weiToInvest)
-        if (txn.error == null) {
-            const address = await signer.getAddress();
-            await DatabaseService.recordInvestment(address, dealData.dealAddress!)
-        }
+        // TODO: This should be handled in the Moralis backend
+        // if (txn.error == null) {
+        //     const address = await signer.getAddress();
+        //     await DatabaseService.recordInvestment(address, dealData.dealAddress!)
+        // }
         return txn;
     }
 

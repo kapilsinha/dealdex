@@ -35,7 +35,7 @@ export default class AuthService {
 
         if (currentUser) {
             const address = currentUser.get('ethAddress')
-            return new User(address, "anonymous", [], [], [], [])
+            return User.anonymous(address)
         } else {
             return null
         }

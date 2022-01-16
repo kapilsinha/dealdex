@@ -117,8 +117,8 @@ task("writeMoralisDealMetadata", "Initializes a Moralis Object with the deal and
     let state = await hre.run("getState");
     const DeploymentState = Moralis.Object.extend("DeploymentState");
     const deploymentState = new DeploymentState();
-    deploymentState.set("deal_addr", state.contractAddresses.Deal);
-    deploymentState.set("dealFactory_addr", state.contractAddresses.DealFactory);
+    deploymentState.set("dealAddr", state.contractAddresses.Deal);
+    deploymentState.set("dealFactoryAddr", state.contractAddresses.DealFactory);
     await deploymentState.save()
     .then((deploymentState) => {
       console.log('DeploymentState saved to Moralis with objectId: ' + deploymentState.id);
