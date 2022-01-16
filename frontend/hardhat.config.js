@@ -3,6 +3,8 @@
 require("@nomiclabs/hardhat-waffle");
 require('@openzeppelin/hardhat-upgrades');
 
+const Moralis = require('moralis/node');
+const moralisConfig = require('../secrets/moralisConfig.json');
 const { writeFirebaseDoc } = require("./hardhatFirebaseUtils.js");
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -107,6 +109,23 @@ task("updateFirebaseState", "Initializes (overwrites!) specified Firebase collec
     fs.writeFileSync(path, JSON.stringify(state), 'utf8');
 });
 
+task("writeMoralisDealMetadata", "Initializes a Moralis Object with the deal and dealFactory metadata")
+    .setAction(async (taskArgs, hre) => {
+    Moralis.start({ serverUrl: moralisConfig.SERVER_URL, appId: moralisConfig.APP_ID });
+
+    let state = await hre.run("getState");
+    const DeploymentState = Moralis.Object.extend("DeploymentState");
+    const deploymentState = new DeploymentState();
+    deploymentState.set("deal_addr", state.contractAddresses.Deal);
+    deploymentState.set("dealFactory_addr", state.contractAddresses.DealFactory);
+    await deploymentState.save()
+    .then((deploymentState) => {
+      console.log('DeploymentState saved to Moralis with objectId: ' + deploymentState.id);
+    }, (error) => {
+      console.log('Failed to save DeploymentState to Moralis, error code: ' + error.message);
+    });
+});
+
 task("configureForTestnet", "Points web app to the ropsten firebase collection")
     .setAction(async (taskArgs, hre) => {
     const path = hre.config.paths.artifacts + "/deployment-info/DeploymentState.json"
@@ -149,9 +168,5 @@ try {
 } catch {
   console.log("Unable to load Mumbai infura credentials")
 }
-
-
-
-
 
 module.exports = config

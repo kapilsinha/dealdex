@@ -27,9 +27,11 @@ npx hardhat node
 # This prints out the address of SimpleToken. Use it when creating/testing deals locally.
 npx hardhat run scripts/deploy.js --network localhost
 
-# Follow the hardhat setup here: https://docs.moralis.io/moralis-server/web3/setting-up-ganache
+# Follow the setup here: https://docs.moralis.io/moralis-server/web3/setting-up-ganache#connecting-hardhat-to-moralis-real-time-and-historical-transactions
 # Use the following command after you set up your dev env:
 ./frpc -c frpc.ini
+
+npx hardhat writeMoralisDealMetadata --network localhost
 
 # IMPORTANT: make sure to run this command to set up your firebase env. Run it after you deploy the contracts with scripts/deploy.js. Example collection-name is dummy-local
 # If you get a permissions error, update the permissions in the Firestore db (in the Rules tab)
