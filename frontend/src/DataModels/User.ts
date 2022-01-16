@@ -4,7 +4,7 @@ import PendingDeal from './PendingDeal';
 import DealFactory from '../artifacts/contracts/PogDeal.sol/DealFactory.json'
 import DealService from '../Services/DealService';
 import DatabaseService from '../Services/DatabaseService'
-import { DealParticipantAddresses } from './DealConfig';
+// import { DealParticipantAddresses } from './DealConfig';
 import DealMetadata from './DealMetadata';
 import SmartContractService from '../Services/SmartContractService';
 import Moralis from "moralis";

@@ -1,10 +1,9 @@
 // Import the functions you need from the SDKs you need
 import User from "../DataModels/User"
 import DealMetadata from "../DataModels/DealMetadata"
-import { DealConfig, DealParticipantAddresses } from "../DataModels/DealConfig";
+// import { DealConfig, DealParticipantAddresses } from "../DataModels/DealConfig";
 import Moralis from "moralis";
 
-import DeploymentState from "../artifacts/deployment-info/DeploymentState.json"
 import moralisConfig from '../moralisConfig.json'
 
 // Moralis

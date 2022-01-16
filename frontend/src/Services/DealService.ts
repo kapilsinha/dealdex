@@ -12,34 +12,17 @@ import DealMetadata from '../DataModels/DealMetadata';
 
 export default class DealService {
 
-    static async initWithFirebase(dealData: Deal) {
-        let dealMetadata = await DatabaseService.getDealMetadata(dealData.dealAddress!)
-        dealData.name = dealMetadata?.name
-
-        if (dealData.startup.address) {
-            let project = await DatabaseService.getUser(dealData.startup.address)
-            dealData.startup.name = project?.name || ""
-        }
-
-        for (let [idx, investor] of dealData.investors.entries()) {
-            if (investor.address) {
-                let investorInfo = await DatabaseService.getUser(investor.address)
-                dealData.investors[idx].name = investorInfo?.name || ""
-            }
-        }
-    }
-
     static async publishDeal(dealData: Deal, user: User) { 
         let signer = await SmartContractService.getSignerForUser(user)       
         const creatorAddress = await signer!.getAddress()
-        const startupAddress = dealData.startup.address
+        const startupAddress = dealData.startup.get("address")
         
 
         const minWeiPerInvestor = ethers.utils.parseEther(dealData.minInvestmentPerInvestor!.toString())
         const maxWeiPerInvestor = ethers.utils.parseEther(dealData.maxInvestmentPerInvestor!.toString()) 
 
         const minTotalWei = ethers.utils.parseEther(dealData.minTotalInvestment!.toString())
-        const maxTotalWei = ethers.utils.parseEther(dealData.maxTotalInvestment!.toString()) 
+        const maxTotalWei = ethers.utils.parseEther(dealData.maxTotalInvestment!.toString())
 
         const deadlineUnixTimestamp = Math.round( 
             dealData.investmentDeadline!.getTime() / 1000
@@ -79,7 +62,7 @@ export default class DealService {
         //     await DatabaseService.recordPendingDeal(
         //         user,
         //         dealConfig,
-        //         new DealMetadata(dealData.name!),
+        //         new DealMetadata(dealData.get("name")!),
         //         txn.hash
         //     )
         // }
@@ -128,13 +111,16 @@ export default class DealService {
         var investmentDeadline = config.investConfig.investmentDeadline
         investmentDeadline = new Date(investmentDeadline.toNumber() * 1000) // Seconds -> Milliseconds
 
+        let project = await DatabaseService.getUser(startupAddress) || User.empty(startupAddress)
+        let investors = investorAddresses.map(async function(investorAddress: string, index: Number){
+            return await DatabaseService.getUser(investorAddress) || User.empty(investorAddress)
+        })
+        let dealMetadata = await DatabaseService.getDealMetadata(dealAddress)
         const deal = new Deal(
-            User.empty(startupAddress),
-            investorAddresses.map(function(investorAddress: string, index: Number){
-                return User.empty(investorAddress)
-            }),
+            project,
+            investors,
             investorAmounts,
-            "" /* name */,
+            dealMetadata?.get("name"),
             dealAddress,
             ethPerToken,
             getValidatedAddress(startupTokenAddress),
@@ -148,7 +134,6 @@ export default class DealService {
             getValidatedAddress(gateToken)
         )
 
-        await DealService.initWithFirebase(deal)
         return deal
     }
 
