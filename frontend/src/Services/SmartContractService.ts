@@ -152,7 +152,7 @@ export default class SmartContractService {
             const provider = new ethers.providers.Web3Provider(anyWindow.ethereum)
             const signer = provider.getSigner()
             let signerAddress = await signer.getAddress()
-            if (signerAddress == user.address) {
+            if (signerAddress == user.get("address")) {
                 return signer
             } else {
                 return undefined

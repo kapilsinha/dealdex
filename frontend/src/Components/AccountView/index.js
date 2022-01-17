@@ -26,13 +26,14 @@ function AccountView(props) {
         let user = await DatabaseService.getUser("userAddress");
         let deals = await user.getDealsWhereStartup();
 
-        let startupPendingDeals = await user.getPendingDealsWhereStartup();
-        let investorPendingDeals = await user.getPendingDealsWhereInvestor();
+         // TODO: revisit
+        // let startupPendingDeals = await user.getPendingDealsWhereStartup();
+        // let investorPendingDeals = await user.getPendingDealsWhereInvestor();
         let investments = await user.getDealsWhereInvestor();
         let name = user.name;
         setDealsWhereStartup(deals);
-        setPendingDealsWhereInvestor(investorPendingDeals);
-        setPendingDealsWhereStartup(startupPendingDeals);
+        // setPendingDealsWhereInvestor(investorPendingDeals);
+        // setPendingDealsWhereStartup(startupPendingDeals);
         setDealsWhereInvestor(investments);
         setUsername(name);
       } catch (err) {

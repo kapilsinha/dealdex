@@ -1,3 +1,4 @@
+// TODO: Delete? Should be unused
 export default class DeploymentState {
     deal_addr: string
     dealFactory_addr: string
