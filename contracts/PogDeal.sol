@@ -32,7 +32,7 @@ contract DealFactory is CloneFactory, Initializable {
     }
 
     // Events
-    event DealCreated(address indexed creator, Deal deal);
+    event DealCreated(address indexed creator, address indexed project, address dealAddress);
 
     // Fee setter
     function calcDealDexFees(DealConfig memory) internal pure returns (uint16, uint16) {
@@ -49,7 +49,7 @@ contract DealFactory is CloneFactory, Initializable {
 
         Deal deal = Deal(createClone(dealContractAddress));
         deal.init(_dealConfig);
-        emit DealCreated(msg.sender, deal);
+        emit DealCreated(msg.sender, _dealConfig.participantAddresses.project, address(deal));
     }
 }
 
@@ -79,6 +79,9 @@ contract Deal is ILockableDeal {
     // Overrides allowing DealDex to provide a hard reset
     Overrides public overrides;
 
+    // Events
+    event InvestUpdate(address indexed investor, uint256 indexed nftId, uint256 investedAmt, uint256 totalFunds);
+
     // Initializers
 
     function init(DealConfig calldata _dealConfig) external {
@@ -106,6 +109,7 @@ contract Deal is ILockableDeal {
         // The funds are locked once the investment goal has been reached
         isLockedFlag = (totalReceivedInvestment >= config.investConfig.sizeConstraints.minTotalInvestment);
         investmentKeys.push(getInvestmentKey(id));
+        emit InvestUpdate(msg.sender, id, amount, totalReceivedInvestment);
     }
 
     // The project can claim all funds as long as the deadline has passed and the deal is valid
@@ -162,6 +166,7 @@ contract Deal is ILockableDeal {
         setInvestmentKeyDict(investmentKeyToReceivedFunds, id, 0);
         bool success = IERC20(config.investConfig.investmentTokenAddress).transfer(msg.sender, amountToRefund);
         require(success, "Failed to transfer the refunded amount");
+        emit InvestUpdate(msg.sender, id, 0, totalReceivedInvestment);
     }
 
 
@@ -169,7 +174,7 @@ contract Deal is ILockableDeal {
     function claimTokens(uint256 id) external override {
         require(address(0) != config.tokensConfig.projectTokenAddress, "Project token not yet specified");
         require(isValidLockStatus(config.tokensConfig.lockConstraint), string(abi.encodePacked("Cannot claim tokens because the deal is ", (!isLockedFlag ? "un" : ""), "locked")));
-        uint256 vestedTokens = getTotalVestedTokens(config.vestingSchedule, id);
+        uint256 vestedTokens = getTotalVestedTokens(id);
         require(vestedTokens > 0, "Zero tokens have been vested to the investor");
 
         uint256 dealdexFeeTokens = vestedTokens * config.tokensConfig.dealdexFeeBps / 10000;
@@ -334,17 +339,17 @@ contract Deal is ILockableDeal {
     // This DOES NOT account for the number of tokens that the investor has already claimed or fees
     // e.g. if 200 tokens have been vested and the vestor has already claimed 100 and syndicate manager takes 20 tokens,
     // this function will still return 200
-    function getTotalVestedTokens(VestingSchedule storage vestingSchedule, uint256 id) view internal returns (uint256) {
-        require(vestingSchedule.vestingStrategy != VestingStrategy.SIZE_INC, "Investment-size sorted vesting is unsupported");
+    function getTotalVestedTokens(uint256 id) view public returns (uint256) {
+        require(config.vestingSchedule.vestingStrategy != VestingStrategy.SIZE_INC, "Investment-size sorted vesting is unsupported");
         uint256 vestedBps = 0;
-        for (uint i = 0; i < vestingSchedule.vestingBps.length; i++) {
-            if (vestingSchedule.vestingTimestamps[i] < block.timestamp) {
-                vestedBps = vestingSchedule.vestingBps[i];
+        for (uint i = 0; i < config.vestingSchedule.vestingBps.length; i++) {
+            if (config.vestingSchedule.vestingTimestamps[i] < block.timestamp) {
+                vestedBps = config.vestingSchedule.vestingBps[i];
             }
         }
 
         uint256 allocatedTokens = investmentAmtToTokens(getInvestmentKeyDict(investmentKeyToReceivedFunds, id));
-        if (vestingSchedule.vestingStrategy == VestingStrategy.PROPORTIONAL) {
+        if (config.vestingSchedule.vestingStrategy == VestingStrategy.PROPORTIONAL) {
             return allocatedTokens * vestedBps / 10000;
         }
 
@@ -357,7 +362,7 @@ contract Deal is ILockableDeal {
         uint256 globalVestedTokens = globalAllocatedTokens * vestedBps / 10000;
 
         InvestmentKey memory key = getInvestmentKey(id);
-        if (vestingSchedule.vestingStrategy == VestingStrategy.TIME_INC) {
+        if (config.vestingSchedule.vestingStrategy == VestingStrategy.TIME_INC) {
             for (uint i = 0; i < investmentKeys.length; i++) {
                 address keyAddr = investmentKeys[i].addr;
                 uint256 keyId = investmentKeys[i].id;
