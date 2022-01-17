@@ -4,7 +4,7 @@ import PendingDealData from './PendingDealData';
 import DealFactory from '../artifacts/contracts/PogDeal.sol/DealFactory.json'
 import DealService from '../Services/DealService';
 import DatabaseService from '../Services/DatabaseService'
-import { ParticipantAddresses } from './DealConfig';
+import { DealParticipantAddresses } from './DealConfig';
 import DealMetadata from './DealMetadata';
 import SmartContractService from '../Services/SmartContractService';
 
@@ -138,9 +138,9 @@ async function resolvePendingDeal(dealData: PendingDealData, creatorAddress: str
     if (dealAddress === undefined) {
         return
     } else {
-        let dealParticipants = new ParticipantAddresses(creatorAddress, startupAddress, undefined)
+        let dealParticipants = new DealParticipantAddresses(creatorAddress, startupAddress)
         await DatabaseService.recordDeal(
-            new ParticipantAddresses(creatorAddress, startupAddress, undefined),
+            new DealParticipantAddresses(creatorAddress, startupAddress),
             new DealMetadata(dealName, dealAddress)
         )
 
