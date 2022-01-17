@@ -10,12 +10,24 @@ export default class PendingDeal extends Moralis.Object {
     static createPendingDeal(
         name: string, 
         creator: User, 
-        txnHash: string): PendingDeal
+        txnHash: string,
+        project: User, 
+        manager: User,
+        investorPaymentToken: string,
+        nftAddress: string,
+        minInvestmentAmt: number,
+        investmentDeadline: number): PendingDeal
     {
         let pendingDeal = new PendingDeal()
         pendingDeal.set("name", name)
         pendingDeal.set("creator", creator)
         pendingDeal.set("txnHash", txnHash)
+        pendingDeal.set("project", project)
+        pendingDeal.set("manager", manager)
+        pendingDeal.set("investorPaymentToken", investorPaymentToken)
+        pendingDeal.set("nftAddress", nftAddress)
+        pendingDeal.set("minInvestmentAmt", minInvestmentAmt)
+        pendingDeal.set("investmentDeadline", investmentDeadline)
         return pendingDeal
     }
 }
