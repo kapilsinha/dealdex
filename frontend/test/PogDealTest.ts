@@ -1,7 +1,9 @@
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
-var helper = require("./TestHelpers.ts");
-const { BigNumber } = require("ethers");
+import { expect } from "chai";
+import { ethers, upgrades } from "hardhat";
+import { BigNumber } from "ethers";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { ERC20, Deal, DealFactory, SimpleToken, SimpleNFT } from "../typechain-types"
+import helper from "./TestHelpers";
 
 // https://hardhat.org/tutorial/testing-contracts.html
 
@@ -22,45 +24,55 @@ describe("PogDeal contract", function () {
   // A common pattern is to declare some variables, and assign them in the
   // `before` and `beforeEach` callbacks.
 
-  let Deal;
-  let DealFactory;
-  let SimpleToken;
-  let deal;
-  let dealFactory;
-  let simpleToken;
-  let simpleToken2;
-  let accounts;
+  let ZDeal;
+  let ZDealFactory;
+  let ZSimpleToken;
+  let ZSimpleNFT;
+  let deal: Deal;
+  let dealFactory: DealFactory;
+  let simpleToken: SimpleToken;
+  let simpleToken2: SimpleToken;
+  let simpleNft: SimpleNFT;
+  let accounts: SignerWithAddress[];
+  let dealdexAddress = "0xBb6354C590d49D8c81B2b86D3972dD0Be6976478";
   let simpleTokenSupply = 10000;
 
   // `beforeEach` will run before each test, re-deploying the contract every
   // time. It receives a callback, which can be async.
   beforeEach(async function () {
 
-    Deal = await ethers.getContractFactory("Deal");
-    DealFactory = await ethers.getContractFactory("DealFactory");
-    SimpleToken = await ethers.getContractFactory("SimpleToken");
-    
-    deal = await Deal.deploy();
+    ZDeal = await ethers.getContractFactory("Deal");
+    ZDealFactory = await ethers.getContractFactory("DealFactory");
+    ZSimpleToken = await ethers.getContractFactory("SimpleToken");
+    ZSimpleNFT = await ethers.getContractFactory("SimpleNFT");
+
+    deal = await ZDeal.deploy() as Deal;
     await deal.deployed();
 
-    dealFactory = await DealFactory.deploy(deal.address);
+    dealFactory = await upgrades.deployProxy(ZDealFactory, [deal.address, dealdexAddress], { initializer: 'initialize' }) as DealFactory;
     await dealFactory.deployed();
-      
-    simpleToken = await SimpleToken.deploy("yeesong","yue", simpleTokenSupply);
+
+    simpleToken = await ZSimpleToken.deploy("Simple Token", "SMPL", simpleTokenSupply) as SimpleToken;
     await simpleToken.deployed();
-    simpleToken2 = await SimpleToken.deploy("yaser","abou", simpleTokenSupply);
+    simpleToken2 = await ZSimpleToken.deploy("Yeesong", "YOOO", simpleTokenSupply) as SimpleToken;
     await simpleToken2.deployed();
 
     accounts = await ethers.getSigners();
-   
+    
     let equalSplitAmount = simpleTokenSupply / accounts.length;
     for (const account of accounts) {
-      await simpleToken.transfer(account.address, BigInt(equalSplitAmount * Math.pow(10, 18)));
-      await simpleToken2.transfer(account.address, BigInt(equalSplitAmount * Math.pow(10, 18)));
+        await simpleToken.transfer(account.address, BigInt(equalSplitAmount * Math.pow(10, 18)));
+        await simpleToken2.transfer(account.address, BigInt(equalSplitAmount * Math.pow(10, 18)));
+    }
+
+    simpleNft = await ZSimpleNFT.deploy("Simple NFT", "SNFT", 100) as SimpleNFT;
+    await simpleNft.deployed();
+    const sender = accounts[0];
+    for (const [tokenId, account] of accounts.slice(1,).entries()) {
+        await simpleNft.transferFrom(sender.address, account.address, tokenId + 1);
     }
   });
 
-  // You can nest describe calls to create subsections.
   describe("Deployment", function () {
     // `it` is another Mocha function. This is the one you use to define your
     // tests. It receives the test name, and a callback function.
@@ -70,7 +82,7 @@ describe("PogDeal contract", function () {
     it("Should assign an equal split of tokens to all accounts", async function () {
       for (const token of [simpleToken, simpleToken2]) {
         const totalSupply = await token.totalSupply();
-        const expectedBalance = BigInt(totalSupply / accounts.length);
+        const expectedBalance = totalSupply.div(accounts.length);
         for (const account of accounts) {
           const ownerBalance = await token.balanceOf(account.address);
           expect(expectedBalance).to.equal(ownerBalance);
@@ -79,6 +91,17 @@ describe("PogDeal contract", function () {
     });
   });
 
+  describe("Create dummy deal", function () {
+    // `it` is another Mocha function. This is the one you use to define your
+    // tests. It receives the test name, and a callback function.
+
+    // If the callback function is async, Mocha will `await` it.
+
+    it("Should create a deal", async function () {
+      await helper.createDeal(dealFactory, accounts[0].address, accounts[1].address, simpleToken, simpleToken2, simpleNft);
+    });
+  });
+/*
   // TODO: Test 1 SMPL < 1 eth and 1 SMPL > 1 eth
   describe("Create Deal", function () {
     let expiryDate = 0;
@@ -263,4 +286,5 @@ describe("PogDeal contract", function () {
       )
     });
   });
+  */
 });

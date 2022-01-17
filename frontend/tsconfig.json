@@ -13,7 +13,7 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -22,6 +22,7 @@
     "jsx": "react-jsx"
   },
   "include": [
-    "src"
-  ]
+    "./src", "./scripts", "./test", "./typechain"
+  ],
+  "files": ["./hardhat.config.ts"]
 }

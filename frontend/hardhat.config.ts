@@ -1,12 +1,18 @@
 // These includes are needed to add to the Hardhat object
 // e.g. to use hre.upgrades in deploy script
-require("@nomiclabs/hardhat-waffle");
-require('@openzeppelin/hardhat-upgrades');
-require('hardhat-contract-sizer');
+import '@typechain/hardhat'
+import '@nomiclabs/hardhat-ethers'
+import '@nomiclabs/hardhat-waffle'
 
-const Moralis = require('moralis/node');
-const moralisConfig = require('../secrets/moralisConfig.json');
-const { writeFirebaseDoc } = require("./hardhatFirebaseUtils.js");
+import '@openzeppelin/hardhat-upgrades';
+import 'hardhat-contract-sizer';
+import { task } from "hardhat/config";
+
+import Moralis from 'moralis/node';
+import moralisConfig from '../secrets/moralisConfig.json';
+
+import ropsten from '../secrets/ropsten_infura.json'
+import mumbai from '../secrets/mumbai_infura.json'
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -29,30 +35,20 @@ task("getState", "Prints state of current deals", async(taskArgs, hre) => {
 
     let contractAddresses = JSON.parse(fs.readFileSync(contractAddressesPath));
 
-    const Deal = await ethers.getContractFactory("Deal");
-    const DealFactory = await ethers.getContractFactory("DealFactory");
-    const SimpleToken = await ethers.getContractFactory("SimpleToken");
+    const Deal = await hre.ethers.getContractFactory("Deal");
+    const DealFactory = await hre.ethers.getContractFactory("DealFactory");
+    const SimpleToken = await hre.ethers.getContractFactory("SimpleToken");
     let dealFactory = await DealFactory.attach(contractAddresses.DealFactory);
     let simpleToken = await SimpleToken.attach(contractAddresses.SimpleToken);
    
-    state = {"contractAddresses": contractAddresses,
-             "dealFactory": dealFactory,
-             "simpleToken": simpleToken};
-    return state;
+    return {"contractAddresses": contractAddresses,
+            "dealFactory": dealFactory,
+            "simpleToken": simpleToken};
 });
 
 task("printState", "Prints state of current deals", async(taskArgs, hre) => {
     let state = await hre.run("getState");
     console.log("Initial deployed contracts:", state.contractAddresses);
-
-    // Cannot query all deals from the contract alone, need Firebase now and use printDealState
-    /*
-    const deals = await state.dealFactory.getDeals();
-    console.log("Deals (" + deals.length + "):", deals);
-    for (const dealAddr of deals) {
-        await hre.run("printDealState", { "address": dealAddr });
-    }
-    */
 
     const accounts = await hre.ethers.getSigners();
     for (const account of accounts) {
@@ -65,19 +61,19 @@ task("printDealState", "Prints state of current deal")
     .addParam("address", "The deal's contract address")
     .setAction(async (taskArgs, hre) => {
     let state = await hre.run("getState");
-    const SimpleToken = await ethers.getContractFactory("SimpleToken");
+    const SimpleToken = await hre.ethers.getContractFactory("SimpleToken");
 
-    const Deal = await ethers.getContractFactory("Deal");
+    const Deal = await hre.ethers.getContractFactory("Deal");
     let deal = await Deal.attach(taskArgs.address);
     let dealTokenBalance = parseInt(await state.simpleToken.balanceOf(taskArgs.address));
 
     let startup = await deal.startup();
     let startupTokenBalance = parseInt(await state.simpleToken.balanceOf(startup));
 
-    let investorInfo = await deal.getInvestors();
-    let investors = investorInfo._investors;
-    let investedAmounts = investorInfo._amounts.map(x => parseInt(x));
-    let investorTokenBalances = (await Promise.all(investors.map(async x => state.simpleToken.balanceOf(x)))).map(x => parseInt(x));
+    // let investorInfo = await deal.getInvestors();
+    // let investors = investorInfo._investors;
+    // let investedAmounts = investorInfo._amounts.map(x => parseInt(x));
+    // let investorTokenBalances = (await Promise.all(investors.map(async x => state.simpleToken.balanceOf(x)))).map(x => parseInt(x));
     
     let json = {
                 "dealAddress": taskArgs.address,
@@ -88,26 +84,11 @@ task("printDealState", "Prints state of current deal")
                 "expiryDate": parseInt(await deal.expiryDate()),
                 "startup": startup,
                 "startupTokenBalance": startupTokenBalance,
-                "investors": investors,
-                "investedAmounts": investedAmounts,
-                "investorTokenBalances": investorTokenBalances
+                // "investors": investors,
+                // "investedAmounts": investedAmounts,
+                // "investorTokenBalances": investorTokenBalances
                };
     console.log(json);
-});
-
-task("updateFirebaseState", "Initializes (overwrites!) specified Firebase collection with metadata and misc test documents. Just for testing purposes")
-    .addParam("collection", "The Firebase collection name e.g. kapil-local")
-    .setAction(async (taskArgs, hre) => {
-    let state = await hre.run("getState");
-    // let x = await getFirebaseDoc(taskArgs.collection, "metadata");
-    let metadata = { deal_addr: state.contractAddresses.Deal,
-                     dealFactory_addr: state.contractAddresses.DealFactory };
-    await writeFirebaseDoc(taskArgs.collection, "metadata", metadata);
-
-    const path = hre.config.paths.artifacts + "/deployment-info/DeploymentState.json"
-    state["firebaseCollection"] = taskArgs.collection
-    const fs = require('fs');
-    fs.writeFileSync(path, JSON.stringify(state), 'utf8');
 });
 
 task("writeMoralisDealMetadata", "Initializes a Moralis Object with the deal and dealFactory metadata")
@@ -120,21 +101,11 @@ task("writeMoralisDealMetadata", "Initializes a Moralis Object with the deal and
     deploymentState.set("dealAddr", state.contractAddresses.Deal);
     deploymentState.set("dealFactoryAddr", state.contractAddresses.DealFactory);
     await deploymentState.save()
-    .then((deploymentState) => {
+    .then((deploymentState: typeof DeploymentState) => {
       console.log('DeploymentState saved to Moralis with objectId: ' + deploymentState.id);
-    }, (error) => {
+    }, (error: Moralis.Error) => {
       console.log('Failed to save DeploymentState to Moralis, error code: ' + error.message);
     });
-});
-
-task("configureForTestnet", "Points web app to the ropsten firebase collection")
-    .setAction(async (taskArgs, hre) => {
-    const path = hre.config.paths.artifacts + "/deployment-info/DeploymentState.json"
-    const state = {
-      "firebaseCollection": "ropsten"
-    }
-    const fs = require('fs');
-    fs.writeFileSync(path, JSON.stringify(state), 'utf8');
 });
 
 // You need to export an object to set up your config
@@ -144,7 +115,7 @@ task("configureForTestnet", "Points web app to the ropsten firebase collection")
  * @type import('hardhat/config').HardhatUserConfig
  */
 
-var config = {
+let config = {
   solidity: {
     version: "0.8.4",
     settings: {
@@ -166,21 +137,9 @@ var config = {
     hardhat: {
       chainId: 1337
     }
-  }
+  },
+  ropsten: ropsten,
+  mumbai: mumbai
 }
 
-try {
-  let ropsten = require('../secrets/ropsten_infura.json')
-  config.ropsten = ropsten
-} catch {
-  console.log("Unable to load Ropsten infura credentials")
-}
-
-try {
-  let mumbai = require('../secrets/mumbai_infura.json')
-  config.mumbai = mumbai
-} catch {
-  console.log("Unable to load Mumbai infura credentials")
-}
-
-module.exports = config
+export default config

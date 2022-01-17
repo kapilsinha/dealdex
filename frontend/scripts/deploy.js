@@ -23,9 +23,9 @@ async function main() {
 
   console.log("Deal contract (which will be cloned) deployed to:", deal.address);
 
-  const feeBeneficiaryAddress = "0xBb6354C590d49D8c81B2b86D3972dD0Be6976478";
+  const dealdexAddress = "0xBb6354C590d49D8c81B2b86D3972dD0Be6976478";
   const DealFactory = await hre.ethers.getContractFactory("DealFactory");
-  const dealFactory = await hre.upgrades.deployProxy(DealFactory, [deal.address, feeBeneficiaryAddress], { initializer: 'initialize' });
+  const dealFactory = await hre.upgrades.deployProxy(DealFactory, [deal.address, dealdexAddress], { initializer: 'initialize' });
   await dealFactory.deployed();
 
   console.log("Upgradable DealFactory deployed to:", dealFactory.address);
@@ -43,7 +43,7 @@ async function main() {
   const SimpleNFT = await hre.ethers.getContractFactory("SimpleNFT");
   const simpleNft = await SimpleNFT.deploy("Simple NFT", "SNFT", 100);
   await simpleNft.deployed();
-  sender = accounts[0];
+  const sender = accounts[0];
   for (const [tokenId, account] of accounts.slice(1,).entries()) {
       await simpleNft.transferFrom(sender.address, account.address, tokenId + 1);
   }
