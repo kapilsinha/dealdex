@@ -1,32 +1,84 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useContext, useState} from "react";
 
 import { useMoralis } from "react-moralis";
 import { APP_ID, SERVER_URL } from "../../App";
 
 import { Text, GridItem, VStack, HStack, Button, Box } from "@chakra-ui/react";
 import { NFTName, Symbols, ConvertAddress } from "../../Utils/ComponentUtils";
+import {MakeDealFormContext} from '../../Contexts/MakeDealFormContext'
+import {NetworkContext} from '../../Contexts/NetworkContext'
+import SmartContractService from '../../Services/SmartContractService'
+
 
 function DealFormStep5(props) {
-  const { Moralis } = useMoralis();
 
-  const formatInput = (event) => {
-    const attribute = event.target.getAttribute("name");
-    this.setState({ [attribute]: event.target.value.trim() });
-  };
+  const {
+    decrementStep, 
+    dealName, 
+    nftAddress,
+    paymentTokenAddress,
+    minRoundSize,
+    maxRoundSize,
+    minInvestPerInvestor,
+    maxInvestPerInvestor,
+    investDeadline,
+    projectWalletAddress,
+    projectTokenPrice,
+    projectTokenAddress,
+    vestingSchedule,
+    syndicateWalletAddress,
+    syndicationFee,
+  } = useContext(MakeDealFormContext)
+  const {selectedNetworkChainId} = useContext(NetworkContext)
 
-  const handleNextStep = () => {
-    props.nextStep();
-  };
+  const [nftMetadata, setNftMetadata] = useState(undefined);
+  const [paymentTokenMetadata, setPaymentTokenMetadata] = useState(undefined)
+  const [projectTokenMetadata, setProjectTokenMetadata] = useState(undefined)
 
-  const handlePrevStep = () => {
-    props.prevStep();
-  };
+  const [displayValues, setDisplayValues] = useState({
+    dealNameDisplay: "-",
+    projectTokenDisplay: "-",
+    nftNameDisplay: "-",
+    projectTokenPriceDisplay: "-",
+    roundSizeDisplay: "-",
+    syndicateWalletDisplay: "",
+    investorLimitDisplay: "-",
+    syndicationFeeDisplay: "-",
+    investDeadlineDisplay: "-",
+    dealdexFeeDisplay: "-",
+    projectWalletDisplay: ""
+  })
+  const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    Moralis.start({ serverUrl: SERVER_URL, appId: APP_ID });
+  function createDeal() {
+
+  }
+  useEffect(()=>{
+    async function initalizeDisplayValues() {
+        let payment = await SmartContractService.getERC20Metadata(paymentTokenAddress, selectedNetworkChainId)
+        let project = await SmartContractService.getERC20Metadata(projectTokenAddress, selectedNetworkChainId)
+        let nft = await SmartContractService.getNFTMetadata(nftAddress, selectedNetworkChainId)
+
+
+        let display = {
+          dealNameDisplay: dealName,
+          projectTokenDisplay: project ? project.name : "-",
+          nftNameDisplay: nft ? nft.name : "-",
+          projectTokenPriceDisplay: payment ? `${projectTokenPrice} ${payment.symbol}`: "-",
+          roundSizeDisplay: payment ? `${minRoundSize} ${payment.symbol} - ${maxRoundSize} ${payment.symbol}`: "-",
+          syndicateWalletDisplay: syndicateWalletAddress,
+          investorLimitDisplay: payment ? `${minInvestPerInvestor} ${payment.symbol} - ${maxInvestPerInvestor} ${payment.symbol}`: "-",
+          syndicationFeeDisplay: `${syndicationFee}%`,
+          investDeadlineDisplay: (new Date(investDeadline)).toString(),
+          dealdexFeeDisplay: payment ? `2.5% ${payment.symbol}`: "-",
+          projectWalletDisplay: projectWalletAddress
+        }
+        setDisplayValues(display)
+        setIsLoading(false)
+    }        
+    initalizeDisplayValues()
   }, []);
 
-  const dealData = useMemo(() => props.dealData, [props.dealData]);
 
   return (
     <GridItem colSpan={2}>
@@ -41,25 +93,24 @@ function DealFormStep5(props) {
         <HStack w="full" h="full">
           <VStack w="30%" alignItems="flex-start">
             <Box textStyle="labelFormStep">DEAL NAME</Box>
-            <Box textStyle="textFormStep">{dealData.name}</Box>
+            <Box textStyle="textFormStep">{displayValues.dealNameDisplay}</Box>
           </VStack>
           <VStack w="30%" alignItems="flex-start">
             <Box textStyle="labelFormStep">PROJECT TOKEN</Box>
-            <Box textStyle="textFormStep">{dealData.ethPerToken}</Box>
+            <Box textStyle="textFormStep">{displayValues.projectTokenDisplay}</Box>
           </VStack>
         </HStack>
         <HStack w="full" h="full">
           <VStack w="30%" alignItems="flex-start">
             <Box textStyle="labelFormStep">NFT REQUIREMENT</Box>
             <Box textStyle="textFormStep">
-              {" "}
-              <NFTName address={dealData.ethNFTPerToken} />
+              {displayValues.nftNameDisplay}
             </Box>
           </VStack>
           <VStack w="30%" alignItems="flex-start">
             <Box textStyle="labelFormStep">PROJECT TOKEN PRICE</Box>
             <Box textStyle="textFormStep">
-              {dealData.tokenPrice} <Symbols address={dealData.tokensInContract} />
+              {displayValues.projectTokenPriceDisplay}
             </Box>
           </VStack>
         </HStack>
@@ -67,13 +118,13 @@ function DealFormStep5(props) {
           <VStack w="30%" alignItems="flex-start">
             <Box textStyle="labelFormStep">ROUND SIZE</Box>
             <Box textStyle="textFormStep">
-              {dealData.minRoundSize} <Symbols address={dealData.tokensInContract} /> - {dealData.maxRoundSize} <Symbols address={dealData.tokensInContract} />
+              {displayValues.roundSizeDisplay}
             </Box>
           </VStack>
           <VStack w="30%" alignItems="flex-start">
             <Box textStyle="labelFormStep">SYNDICATE WALLET</Box>
             <Box textStyle="textFormStep">
-              <ConvertAddress address={dealData.syndicate} />
+              <ConvertAddress address={displayValues.syndicateWalletDisplay} />
             </Box>
           </VStack>
         </HStack>
@@ -81,23 +132,23 @@ function DealFormStep5(props) {
           <VStack w="30%" alignItems="flex-start">
             <Box textStyle="labelFormStep">LIMIT PER INVESTOR/NFT</Box>
             <Box textStyle="textFormStep">
-              {dealData.minRoundSize} <Symbols address={dealData.minInvestment} /> - {dealData.maxInvestment} <Symbols address={dealData.tokensInContract} />
+              {displayValues.investorLimitDisplay}
             </Box>
           </VStack>
           <VStack w="30%" alignItems="flex-start">
             <Box textStyle="labelFormStep">SYNDICATION FEE</Box>
-            <Box textStyle="textFormStep">{dealData.syndicateFee} (PSTRD)</Box>
+            <Box textStyle="textFormStep">{displayValues.syndicationFeeDisplay}</Box>
           </VStack>
         </HStack>
         <HStack w="full" h="full">
           <VStack w="30%" alignItems="flex-start">
             <Box textStyle="labelFormStep">INVESTMENT DEADLINE</Box>
-            <Box textStyle="textFormStep">{dealData.investmentDeadline}%</Box>
+            <Box textStyle="textFormStep">{displayValues.investDeadlineDisplay}</Box>
           </VStack>
           <VStack w="30%" alignItems="flex-start">
             <Box textStyle="labelFormStep">DEALDEX FEE</Box>
             <Box textStyle="textFormStep">
-              {dealData.dealDexFee}% (<Symbols address={dealData.tokensInContract} />)
+              {displayValues.dealdexFeeDisplay} 
             </Box>
           </VStack>
         </HStack>
@@ -105,17 +156,17 @@ function DealFormStep5(props) {
           <VStack w="30%" alignItems="flex-start">
             <Box textStyle="labelFormStep">PROJECT WALLET</Box>
             <Box textStyle="textFormStep">
-              <ConvertAddress address={dealData.dealAddress} />
+              <ConvertAddress address={displayValues.projectWalletDisplay} />
             </Box>
           </VStack>
         </HStack>
       </VStack>
 
       <HStack w="full" h="full" pt={40} spacing={10} alignItems="flex-start">
-        <Button variant="dealformBack" size="lg" onClick={handlePrevStep}>
+        <Button variant="dealformBack" size="lg" onClick={decrementStep}>
           Back
         </Button>
-        <Button variant="dealForm2Details" size="lg" onClick={handleNextStep}>
+        <Button variant="dealForm2Details" size="lg" onClick={createDeal} isDisabled={isLoading}>
           Create your deal
         </Button>
       </HStack>

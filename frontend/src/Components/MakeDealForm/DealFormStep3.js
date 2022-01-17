@@ -8,7 +8,7 @@ import {
     Grid,
 } from '@chakra-ui/react';
 import { CalendarIcon, CheckCircleIcon, CloseIcon } from '@chakra-ui/icons';
-import {useEffect, useState} from 'react';
+import {useEffect, useState, useContext} from 'react';
 import "react-datepicker/dist/react-datepicker.css";
 import {MakeDealFormItem, MakeDealFormNumberItem} from './index';
 import DatePicker from 'react-datepicker';
@@ -18,127 +18,100 @@ import './date-picker.css';
 import { useMoralis } from "react-moralis";
 //import Moralis from "moralis/types";
 import {APP_ID, SERVER_URL} from "../../App";
+import {MakeDealFormContext} from '../../Contexts/MakeDealFormContext'
+import SmartContractService from '../../Services/SmartContractService';
+import {NetworkContext} from '../../Contexts/NetworkContext'
+
 
 function DealFormStep3(props) {
-    //const format = (val) => val + `%`;
-    const format = (val) => val;
-    const parse = (val) => val.replace(/^\%/, '')
-    //const formatCoin = (val) => (val === '0.0' || val === '0.' || val === '0') ? '0.0' : val + ` USDC`;
-    const formatCoin = (val) => val;
-    const parseCoin = (val) => val.replace(/^\$/, '');
-    const [vestShow, setVestShow] = useState(false);
-    const [tokenPrice, setTokenPrice] = useState(0);
-    const [tokenPriceUnit, setTokenPriceUnit] = useState('USDC');
-    const [tokenMetadata, setTokenMetadata] = useState('');
-    const [enableButton, setEnableButton] = useState(true);
-    const [vestList, setVestList] = useState([]);    
-    const [vestCurCount, setVestCurCount] = useState(0);
 
     const {
-        authenticate,
-        authError,
-        isAuthenticating,
-        isAuthenticated,
-        logout,
-        Moralis,
-    } = useMoralis();
+        decrementStep, 
+        incrementStep, 
+        paymentTokenAddress,
+        projectWalletAddress, 
+        setProjectWalletAddress,
+        projectTokenPrice,
+        setProjectTokenPrice,
+        projectTokenAddress,
+        setProjectTokenAddress,
+        vestingSchedule,
+        setVestingSchedule
+    } = useContext(MakeDealFormContext)
 
-    const formatInput = (event) => {
-        const attribute = event.target.getAttribute('name')
-        this.setState({ [attribute]: event.target.value.trim() })
-    }    
+    const {selectedNetworkChainId} = useContext(NetworkContext)
 
-    const handleNextStep = () => {
-        if (props.dealData.dealAddress && props.dealData.tokenPrice)
-            props.nextStep();
-    }
+    const [paymentTokenMetadata, setPaymentTokenMetadata] = useState(undefined);
 
-    const handlePrevStep = () => {
-        props.prevStep();
-    }
+    const [projectTokenMetadataIsLoading, setProjectTokenMetadataIsLoading] = useState(false)
+    const [projectTokenMetadata, setProjectTokenMetadata] = useState(undefined)
+
+    const [vestDate, setVestDate] = useState("")
+    const [vestPercent, setVestPercent] = useState("")  
 
     const addVestList = () => {
-        const date = props.dealData.investmentDeadline ? props.dealData.investmentDeadline : "Dec 26, 2021 07:14:31" 
-        const percent = props.dealData.vestPercent;
-        const index = vestList.length + 1
-        vestList.push({date, percent, index});
-        setVestList(vestList);
-        setVestCurCount(vestCurCount + 1);
+        const date = vestDate
+        const percent = vestPercent
+        if (date != "" && percent != "") {
+            setVestingSchedule([...vestingSchedule, {date, percent}])
+        }
     }
 
     const removeVestList = (index) => {
-        const list = vestList.filter((vest, inx) => inx !== index)
-        setVestList(list);
-        setVestCurCount(vestCurCount - 1);
+        const newSchedule = vestingSchedule.filter((vest, inx) => inx !== index)
+        setVestingSchedule(newSchedule);
     }
 
-    function validateWalletAddress(value) {
-        let error = ""
-        if (!value) {
-          error = 'Wallet is required'
-        } 
-        return error
+    async function validateProjectTokenAddress(tokenAddress) {
+        setProjectTokenMetadataIsLoading(true)
+        const metadata = await SmartContractService.getERC20Metadata(tokenAddress, selectedNetworkChainId)
+
+        setProjectTokenMetadata(metadata)
+        setProjectTokenMetadataIsLoading(false)
+
     }
 
-    function validateTokenPrice(value) {
-        let error = ""
-        if (!value) {
-          error = 'Token price is required'
-        } 
-        return error
+    function getValidatedAddress(address) {
+        return SmartContractService.getChecksumAddress(address)
     }
 
-    async function getTokenPrice(tokenAddress) {
-        //Get token price on PancakeSwap v2 BSC
-        const options = {
-            address: tokenAddress,
-            chain: "bsc",
-            exchange: "PancakeSwapv2"
-        };
-        const price = await Moralis.Web3API.token.getTokenPrice(options);
-        return price;
+    function inputsAreValid() {
+        return (getValidatedAddress(projectWalletAddress)
+                && projectTokenPrice != ""
+                && projectTokenIsValid()
+                && vestingScheduleIsValid()
+        )
     }
 
-    async function getTokenMetadata(tokenAddress) {
-        //Get metadata for one token
-        const options = { chain: "bsc", addresses: tokenAddress };
-        const tokenMetadata = await Moralis.Web3API.token.getTokenMetadata(options);
-        return tokenMetadata;
+    function vestingScheduleIsValid() {
+        if (vestingSchedule.length == 0) {
+            return true
+        } else {
+            let lastElement = vestingSchedule[vestingSchedule.length - 1]
+            return lastElement.percent == 100
+        }
+    }
+
+    function projectTokenIsValid() {
+        if (projectTokenAddress == "") {
+            return true
+        } else {
+            return projectTokenMetadata
+        }
     }
 
     useEffect(()=>{
-        // if (!isAuthenticated) {
-        //     authenticate();
-        // }
-        Moralis.start({ serverUrl: SERVER_URL, appId: APP_ID });  
+        validateProjectTokenAddress(projectTokenAddress)
+    }, [projectTokenAddress]);
+
+
+    useEffect(()=>{
+        async function fetchAndSetPaymentTokenMetadata() {
+            let metadata = await SmartContractService.getERC20Metadata(paymentTokenAddress, selectedNetworkChainId)
+            setPaymentTokenMetadata(metadata)
+        }        
+        fetchAndSetPaymentTokenMetadata()
     }, []);
-
-    useEffect(()=>{
-        // if (!isAuthenticated || isAuthenticating) return;
-        if (props.dealData.ethPerToken) {
-            getTokenMetadata(props.dealData.ethPerToken).then((metadata => { 
-                console.log(metadata)
-                if (metadata.length > 0 && metadata[0].symbol) {
-                    setTokenMetadata(metadata[0].address);
-                    getTokenPrice(props.dealData.ethPerToken).then((price => {
-                        console.log(price)
-                        if (price.length > 0 && price[0].exchangeAddress) {
-                            setTokenPrice(price[0].nativePrice.decimals);
-                            setTokenPriceUnit(price[0].nativePrice.symbol);
-                        }
-                    }))
-                } else {            
-                    setTokenMetadata('');
-                }
-            }));
-        }
-    }, [props.dealData.ethPerToken]);
-
-    useEffect(()=>{
-        if (props.dealData.dealAddress && tokenPrice) {
-            setEnableButton(false);
-        }
-    }, [props.dealData.dealAddress, tokenPrice, vestCurCount]);
 
     return (
         <GridItem colSpan={2} >
@@ -153,13 +126,21 @@ function DealFormStep3(props) {
                 <MakeDealFormItem 
                     title="Project’s wallet"
                     colSpan={2}
-                    onChange = {e => props.setDealData({ ...props.dealData, dealAddress: e.target.value})}
+                    onChange = {e => {
+                            let validatedAddress = getValidatedAddress(e.target.value)
+                            if (validatedAddress) {
+                                setProjectWalletAddress(validatedAddress)
+                            } else {
+                                setProjectWalletAddress(e.target.value)
+                            }
+                            
+                        }}
                     placeholder = "Project’s Wallet Address"
-                    value = {props.dealData.dealAddress}
-                    onBlur = {e => formatInput(e)}
+                    value = {projectWalletAddress}
                     isRequired = {true}
-                    verified = {props.dealData.dealAddress && props.dealData.dealAddress.length > 0}
+                    verified = {getValidatedAddress(projectWalletAddress)}
                     helperText = "This wallet will be able to withdraw all funds from the deal once the minimum round size has been reached."
+                    errorText = "Please enter a valid wallet address"
                 />
             </HStack>
 
@@ -167,17 +148,13 @@ function DealFormStep3(props) {
                 <MakeDealFormNumberItem 
                     title="Project Token Price"
                     colSpan={2}
-                    onChange = {(value) => {props.setDealData({ ...props.dealData, tokenPrice: parseCoin(value)}); setTokenPrice(value)}}
-                    placeholder = "0.0"
-                    value = {tokenPrice ? tokenPrice : '0.0'}
-                    onBlur = {e => formatInput(e)}
-                    width="48%"
+                    onChange = {value => setProjectTokenPrice(value)}
+                    value = {projectTokenPrice}
+                    width="50%"
+                    appendChar = {paymentTokenMetadata ? paymentTokenMetadata.symbol : ""}
                     isRequired = {true}
-                    parsing = {true}
-                    formatFuc = {formatCoin}
-                    parseFuc = {parseCoin}
-                    appendChar = {tokenPriceUnit}
-                    verified={true}
+                    disabled = {(paymentTokenMetadata === undefined)}
+                    verified = {projectTokenPrice != ""}
                     helperText = "The price of the project’s token. This can be updated by the project in the future."
                 />
             </HStack>
@@ -187,62 +164,62 @@ function DealFormStep3(props) {
                     <MakeDealFormItem 
                         title="Project Token"
                         colSpan={2}
-                        onChange = {e => props.setDealData({ ...props.dealData, ethPerToken: e.target.value})}
+                        onChange = {e => setProjectTokenAddress(e.target.value)}
                         placeholder = "ERC-20 Token Contract Address"
-                        value = {props.dealData.ethPerToken}
-                        onBlur = {e => formatInput(e)}
+                        value = {projectTokenAddress}
+                        onBlur = {e => setProjectTokenAddress(e.target.value.trim())}
+                        verified = {(projectTokenMetadata !== undefined)}
+                        isVerifying = {projectTokenMetadataIsLoading}
                         isRequired = {false}
                         helperText = "(Optional) The project’s token which will be distributed to investors. This can be specified at a later time as well."
+                        errorText = "Enter a valid ERC-20 token contract address."
                     />
                 </HStack>
                 <HStack w="30%" h="full" pt={10} spacing={10} alignItems="flex-start">
-                    {tokenMetadata && <Container variant="dealFormAlert">
+                    {projectTokenMetadata && <Container variant="dealFormAlert">
                         <Text variant="dealFontWeight500">Project token validated <CheckCircleIcon mt="-2px" ml="3px" color="#7879F1"/></Text>
-                        <Text>Name: Postered Coin</Text>
-                        <Text>Symbol: PSTRD</Text>
-                        <Text>Balance: 420.0</Text>
+                        <Text>Name: {projectTokenMetadata.name}</Text>
+                        <Text>Symbol: {projectTokenMetadata.symbol}</Text>
+                        <Text>Decimals: {projectTokenMetadata.decimals}</Text>
                     </Container>}
                 </HStack>
             </HStack>
 
             <HStack w="full" h="full" pt={5} spacing={10} alignItems="flex-start">
                 <HStack w="65%" h="full" pt={5} spacing={10} alignItems="flex-start">
+
                     <MakeDealFormItem 
                         title="Vest Date"
                         colSpan={2}
-                        onChange = {v => props.setDealData({ ...props.dealData, investmentDeadline: v})}
+                        onChange = {v => { setVestDate(v) }}
                         placeholder = "Dec 26, 2021 07:14:31"
-                        value = {props.dealData.investmentDeadline}
-                        onBlur = {e => formatInput(e)}
+                        value = {vestDate}
                         width="50%"
                         dateformat = {true}
                         DatePicker={DatePicker}
-                        helperText = "Date and time that the tokens will vest"
+                        helperText = {`Date that tokens will invest (${Intl.DateTimeFormat().resolvedOptions().timeZone} time)`}
                     />
+
                     <MakeDealFormNumberItem 
                         title="Vest Percentage"
                         colSpan={2}
-                        onChange = {value => props.setDealData({ ...props.dealData, vestPercent: parse(value)})}
+                        onChange = {value => setVestPercent(value)}
                         placeholder = "0.0"
-                        value = {props.dealData.vestPercent ? props.dealData.vestPercent : '0.0'}
-                        onBlur = {e => formatInput(e)}
+                        value = {vestPercent}
                         width="50%"
                         maxvalue={100}
-                        parsing = {true}
-                        formatFuc = {format}
-                        parseFuc = {parse}
                         appendChar = {"%"}
                         helperText = "Percentage of tokens that will vest on the selected date"
                     />
                 </HStack>
                 <HStack w="30%" h="full" pt={10} spacing={10} alignItems="flex-start" display="block">   
                     <VStack w="full" spacing={1} alignItems="flex-start">  
-                    {vestList.map((vest, index) => (
+                    {vestingSchedule.map((vest, index) => (
                         <Grid templateColumns='repeat(1, 1fr)' w='100%'>
                             <GridItem colStart={1} rowStart={1} w='100%' h='100%'>
                                 <Container variant="dealFormAlert">
-                                    <Text variant="dealFontWeight500">Vesting Step {vest.index}</Text>
-                                    <Text>{vest.date}</Text>
+                                    <Text variant="dealFontWeight500">Vesting Step {index + 1}</Text>
+                                    <Text>{(new Date(vest.date)).toString()}</Text>
                                     <Text>Percentage: {vest.percent}%</Text>  
                                 </Container>
                             </GridItem>
@@ -254,13 +231,14 @@ function DealFormStep3(props) {
                     </VStack>
                 </HStack>
             </HStack>
-            <HStack w="full" h="full" pt={0} spacing={10} alignItems="flex-start">
+
+            <HStack w="full" h="full" pt={10} spacing={10} alignItems="flex-start">
                 <Button variant="dealformAdd" size='lg' onClick={()=>addVestList()}>Add to vesting schedule</Button>
             </HStack>            
             
             <HStack w="full" h="full" pt={40} spacing={10} alignItems="flex-start">
-                <Button variant="dealformBack" size='lg' onClick={handlePrevStep}>Back</Button>
-                <Button variant="dealform3Fee" size='lg' onClick={handleNextStep} disabled = {enableButton}>Continue to fees</Button>
+                <Button variant="dealformBack" size='lg' onClick={decrementStep}>Back</Button>
+                <Button variant="dealform3Fee" size='lg' onClick={incrementStep} disabled = {!inputsAreValid()}>Continue to fees</Button>
             </HStack>
         </GridItem>
     )

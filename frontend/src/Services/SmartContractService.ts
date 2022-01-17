@@ -137,6 +137,49 @@ export default class SmartContractService {
         return balance
     }
 
+    static async getERC20Metadata(erc20TokenAddress: string, chainId: number) {
+        if (erc20TokenAddress === ethers.constants.AddressZero) {
+            return undefined
+        } 
+
+        const provider = await getProviderForChainId(chainId)
+
+        try {
+            const tokenContract = new ethers.Contract(erc20TokenAddress, ERC20_ABI, provider)
+            const name = await tokenContract.name()
+            const symbol = await tokenContract.symbol()
+            const decimals = await tokenContract.decimals()
+            return {name, symbol, decimals}
+        } catch(err) {
+            return undefined
+        }
+    }
+
+    static async getNFTMetadata(erc20TokenAddress: string, chainId: number) {
+        if (erc20TokenAddress === ethers.constants.AddressZero) {
+            return undefined
+        } 
+
+        const provider = await getProviderForChainId(chainId)
+
+        try {
+            const tokenContract = new ethers.Contract(erc20TokenAddress, ERC20_ABI, provider)
+            const name = await tokenContract.name()
+            const symbol = await tokenContract.symbol()
+            return {name, symbol}
+        } catch(err) {
+            return undefined
+        }
+    }
+
+    static getChecksumAddress(address: string) {
+        try {
+            return ethers.utils.getAddress(address)
+        } catch(error) {
+            return undefined
+        }
+    }
+
     static async getWeiBalance(walletAddress: string, provider: providers.Provider | ethers.Signer) {
         const balance = await provider.getBalance(walletAddress)
         return balance
@@ -168,6 +211,23 @@ export default class SmartContractService {
 
 
 /* Helpers */
+
+async function getProviderForChainId(chainId: number) {
+
+    const eth = (window as any).ethereum
+    if (eth) {
+        const walletProvider = new ethers.providers.Web3Provider(eth)
+        const walletNetwork = await walletProvider.getNetwork()
+        if (walletNetwork.chainId == chainId || chainId == 1337) {
+            return walletProvider
+        } else {
+            return ethers.getDefaultProvider(chainId)
+        }
+    }
+
+}
+
+
 function getErrMsg(err: string) {
     let errorRegex = /Error: VM Exception while processing transaction: reverted with reason string '(.*)'/;
     let matches = err.match(errorRegex) || [];

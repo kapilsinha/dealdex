@@ -44,11 +44,12 @@ export const NetworkProvider = ({ children }) => {
 
     useEffect(() => {
       async function switchWalletNetwork() {
-        await enableWeb3()
-        Moralis.switchNetwork(selectedNetworkChainId)
+        if (isWeb3Enabled) {
+          Moralis.switchNetwork(selectedNetworkChainId)
+        }
       }
       switchWalletNetwork()
-    }, [networkIndex])
+    }, [networkIndex, isWeb3Enabled])
 
   return (
     <NetworkContext.Provider value={{ selectedNetworkName, selectedNetworkChainId, allNetworkNames, setNetworkIndex, walletChain }}>{children}</NetworkContext.Provider>

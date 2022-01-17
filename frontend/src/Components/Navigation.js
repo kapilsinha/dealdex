@@ -10,10 +10,7 @@ import { APP_ID, SERVER_URL } from "../App";
 import { useMoralis } from "react-moralis";
 import Network from "../DataModels/Network";
 import {NetworkContext} from "../Contexts/NetworkContext"
-
-
-const SIGN_MESSAGE = "Sign in to DealDex"
-
+import AuthStrings from "../Strings/AuthStrings"
 
 function Navigation() {
   const {Moralis, user, isUserUpdating, isAuthenticating, isAuthenticated, authenticate, logout} = useMoralis();
@@ -31,7 +28,7 @@ function Navigation() {
   const onLogin = async () => {
     try {
 
-      await authenticate({ signingMessage: SIGN_MESSAGE })
+      await authenticate({ signingMessage: AuthStrings.signingMessage })
 
       toast({
         title: "Connect Wallet Success",

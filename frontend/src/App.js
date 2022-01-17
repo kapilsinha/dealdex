@@ -13,7 +13,8 @@ import MakeDealForm from './Components/MakeDealForm'
 import Navigation from './Components/Navigation'
 import moralisConfig from './moralisConfig.json'
 import {NetworkProvider} from './Contexts/NetworkContext'
-
+import {MakeDealFormProvider} from './Contexts/MakeDealFormContext'
+ 
 export const APP_ID = moralisConfig.APP_ID;
 export const SERVER_URL = moralisConfig.SERVER_URL;
 
@@ -31,11 +32,13 @@ function App() {
                 </Route>
 
                 <Route path="/createDeal" >
-                  <MakeDealForm />
+                  <MakeDealFormProvider>
+                    <MakeDealForm />
+                  </MakeDealFormProvider>
                 </Route>
 
                 <Route path="/account" >
-                  <AccountView  />
+                    <AccountView  />
                 </Route>
                 <Route path="/dealDetailsInvestor" component={DealDetailsViewInvestor} />
                 <Route path="/dealDetailsProject" component={DealDetailsViewProject} />

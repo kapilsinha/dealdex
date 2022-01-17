@@ -378,7 +378,7 @@ const DealDexTheme = extendTheme({
     Text: {
       variants: {
         dealInputAppendix: {
-          width: "fit-content",
+          // width: "fit-content",
           marginTop: "1px",
           color: "#718096",
           alignItems: "flex-start",

@@ -5,26 +5,32 @@ import {
     Text,
     Button
   } from '@chakra-ui/react';
-
-  import {MakeDealFormItem, MakeDealFormNumberItem} from './index'
+import {MakeDealFormItem, MakeDealFormNumberItem} from './index'
+import {useEffect, useState, useContext} from 'react';
+import {MakeDealFormContext} from '../../Contexts/MakeDealFormContext'
+import SmartContractService from '../../Services/SmartContractService';
 
 function DealFormStep4(props) {
 
-  const format = (val) => val;
-  const parse = (val) => val.replace(/^\%/, '')
-  const formatInput = (event) => {
-      const attribute = event.target.getAttribute('name')
-      this.setState({ [attribute]: event.target.value.trim() })
-  }    
+  const {
+    decrementStep, 
+    incrementStep, 
+    paymentTokenAddress,
+    syndicateWalletAddress,
+    setSyndicateWalletAddress,
+    syndicationFee,
+    setSyndicationFee
+  } = useContext(MakeDealFormContext)
 
+  function inputsAreValid() {
+    return (syndicateWalletAddress == "" && syndicationFee == "" 
+      || getValidatedAddress(syndicateWalletAddress) && syndicationFee != "")
+  } 
 
-  const handleNextStep = () => {
-    props.nextStep();
-  };
-
-  const handlePrevStep = () => {
-    props.prevStep();
-  };
+  
+  function getValidatedAddress(address) {
+      return SmartContractService.getChecksumAddress(address)
+  }
 
     return (
       <GridItem colSpan={2} >
@@ -38,36 +44,41 @@ function DealFormStep4(props) {
             <MakeDealFormItem 
                 title="Syndicate wallet"
                 colSpan={2}
-                onChange={e => props.setDealData({ ...props.dealData, syndicate: e.target.value})}
+                onChange= {e => {
+                  let validatedAddress = getValidatedAddress(e.target.value)
+                  if (validatedAddress) {
+                    setSyndicateWalletAddress(validatedAddress)
+                  } else {
+                    setSyndicateWalletAddress(e.target.value)
+                  }
+                }}
                 placeholder="Syndicate Wallet Address"
-                value={props.dealData.syndicate}
-                onBlur={e => formatInput(e)}
+                value={syndicateWalletAddress}
                 isRequired= {false}
+                verified = {getValidatedAddress(syndicateWalletAddress)}
                 helperText="This wallet will receive fees when the project’s tokens are deposited in the deal."
+                errorText = "Please enter a valid wallet address"
             />
         </HStack>
         <HStack w="65%" h="full" pt={5} spacing={10} alignItems="flex-start">
         <MakeDealFormNumberItem 
             title="Syndication Fee"
             colSpan={2}
-            onChange = {value => props.setDealData({ ...props.dealData, syndicateFee: parse(value)})}
-            placeholder = "0.0%"
-            value = {props.dealData.syndicateFee ? props.dealData.syndicateFee : '0.0'}
-            onBlur = {e => formatInput(e)}
+            onChange = {value => setSyndicationFee(value)}
+            placeholder = "0.0"
+            value = {syndicationFee}
             width="50%"
             maxvalue={100}
-            parsing = {true}
-            formatFuc = {format}
-            parseFuc = {parse}
-            appendChar = {"%"}
-            helperText = ""
+            appendChar = "%"
+            disabled = {!getValidatedAddress(syndicateWalletAddress)}
+            helperText = "Percentage of the project token you will receive"
         />
         </HStack>
         <HStack w="full" h="full" pt={40} spacing={10} alignItems="flex-start">
-        <Button variant="dealformBack" size="lg" onClick={handlePrevStep}>
+        <Button variant="dealformBack" size="lg" onClick={decrementStep}>
           Back
         </Button>
-        <Button variant="dealForm2Details" size="lg" onClick={handleNextStep}>
+        <Button variant="dealForm2Details" size="lg" onClick={incrementStep} isDisabled={!inputsAreValid()} >
           Continue to review & submit
         </Button>
       </HStack>
