@@ -15,7 +15,14 @@ contract SimpleToken is ERC20 {
     /**
      * @dev Constructor that gives msg.sender all of existing tokens.
      */
-    constructor(string memory name, string memory symbol, uint256 initialSupply) ERC20(name, symbol) {
+    uint8 private _decimals;
+
+    constructor(string memory name, string memory symbol, uint256 initialSupply, uint8 numDecimals) ERC20(name, symbol) {
+      _decimals = numDecimals;
       _mint(msg.sender, initialSupply * (10 ** uint256(decimals())));
+    }
+
+    function decimals() public view virtual override returns (uint8) {
+        return _decimals;
     }
 }

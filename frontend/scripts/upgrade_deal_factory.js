@@ -15,7 +15,7 @@ async function main () {
   const DealFactoryNew = await hre.ethers.getContractFactory("DealFactory");
   console.log('Upgrading DealFactory...');
   await hre.upgrades.upgradeProxy(contractAddresses.DealFactory, DealFactoryNew);
-  console.log('DealFactory upgraded');
+  console.log('DealFactory upgraded. NOTE: Too lazy to automate it so you need to update the dealFactoryImplAddress in Moralis db and potentially update syncs!!');
 }
 
 main()

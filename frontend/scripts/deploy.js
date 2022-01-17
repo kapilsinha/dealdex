@@ -28,17 +28,26 @@ async function main() {
   const dealFactory = await hre.upgrades.deployProxy(DealFactory, [deal.address, dealdexAddress], { initializer: 'initialize' });
   await dealFactory.deployed();
 
-  console.log("Upgradable DealFactory deployed to:", dealFactory.address);
+  console.log("Upgradable DealFactory Proxy deployed to:", dealFactory.address);
+  const dealFactoryImplAddress = await hre.upgrades.erc1967.getImplementationAddress(dealFactory.address);
+  console.log("DealFactory underlying implementation deployed to:", dealFactoryImplAddress);
 
   const SimpleToken = await hre.ethers.getContractFactory("SimpleToken");
-  const simpleToken = await SimpleToken.deploy("Simple Token", "SMPL", 10000);
+  const simpleToken = await SimpleToken.deploy("Simple Token", "SMPL", 10000, 18);
   await simpleToken.deployed();
-
   const accounts = await hre.ethers.getSigners();
   for (const account of accounts) {
       await simpleToken.transfer(account.address, BigInt(100 * Math.pow(10, 18)));
   }
   console.log("SimpleToken deployed to:", simpleToken.address);
+
+  const usdp = await SimpleToken.deploy("USD Pog", "USDP", 10000, 6);
+  await usdp.deployed();
+  const accounts = await hre.ethers.getSigners();
+  for (const account of accounts) {
+      await usdp.transfer(account.address, BigInt(100 * Math.pow(10, 6)));
+  }
+  console.log("USDP deployed to:", usdp.address);
 
   const SimpleNFT = await hre.ethers.getContractFactory("SimpleNFT");
   const simpleNft = await SimpleNFT.deploy("Simple NFT", "SNFT", 100);
@@ -52,7 +61,9 @@ async function main() {
   const addresses = {
     'Deal': deal.address,
     'DealFactory': dealFactory.address,
+    'DealFactoryImpl': dealFactoryImplAddress,
     'SimpleToken': simpleToken.address,
+    'USDP': usdp.address,
     'SimpleNFT': simpleNft.address
   };
   const json = JSON.stringify(addresses);

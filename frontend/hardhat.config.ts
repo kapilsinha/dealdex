@@ -3,8 +3,8 @@
 import '@typechain/hardhat'
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
-
 import '@openzeppelin/hardhat-upgrades';
+
 import 'hardhat-contract-sizer';
 import { task } from "hardhat/config";
 
@@ -38,12 +38,17 @@ task("getState", "Prints state of current deals", async(taskArgs, hre) => {
     const Deal = await hre.ethers.getContractFactory("Deal");
     const DealFactory = await hre.ethers.getContractFactory("DealFactory");
     const SimpleToken = await hre.ethers.getContractFactory("SimpleToken");
+    const SimpleNFT = await hre.ethers.getContractFactory("SimpleToken");
     let dealFactory = await DealFactory.attach(contractAddresses.DealFactory);
     let simpleToken = await SimpleToken.attach(contractAddresses.SimpleToken);
+    let usdp = await SimpleToken.attach(contractAddresses.USDP);
+    let simpleNft = await SimpleNFT.attach(contractAddresses.SimpleNFT);
    
     return {"contractAddresses": contractAddresses,
             "dealFactory": dealFactory,
-            "simpleToken": simpleToken};
+            "simpleToken": simpleToken,
+            "usdp": usdp,
+            "simpleNft": simpleNft};
 });
 
 task("printState", "Prints state of current deals", async(taskArgs, hre) => {
@@ -100,6 +105,21 @@ task("writeMoralisDealMetadata", "Initializes a Moralis Object with the deal and
     const deploymentState = new DeploymentState();
     deploymentState.set("dealAddr", state.contractAddresses.Deal);
     deploymentState.set("dealFactoryAddr", state.contractAddresses.DealFactory);
+    deploymentState.set("dealFactoryImplAddr", state.contractAddresses.DealFactoryImpl);
+
+    // Below is for testing convenience, obviously not relevant for prod usage
+    deploymentState.set("simpleTokenAddr", state.contractAddresses.SimpleToken);
+    deploymentState.set("usdpAddr", state.contractAddresses.USDP);
+    deploymentState.set("simpleNftAddr", state.contractAddresses.SimpleNFT);
+
+    const query = new Moralis.Query(DeploymentState);
+    await query.find().then(async function(results) {
+      for (const obj of results) {
+        console.log("Deleting existing DeploymentState Moralis object with objectId:", obj.id)
+        await obj.destroy();
+      }
+    });
+
     await deploymentState.save()
     .then((deploymentState: typeof DeploymentState) => {
       console.log('DeploymentState saved to Moralis with objectId: ' + deploymentState.id);
