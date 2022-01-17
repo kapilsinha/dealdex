@@ -34,7 +34,7 @@ export default class DealService {
         let participantAddresses = new ParticipantAddresses(dealData.dealdexAddress, dealData.managerAddress, startupAddress)
         let exchangeRateConfig = await getTickDetailsConfig(dealData, user)
         let investConfig = new InvestConfig(minWeiPerInvestor, maxWeiPerInvestor, minTotalWei, maxTotalWei, gateToken, deadline, dealData.investmentTokenAddress, dealData.investmentKeyType)
-        let refundConfig = new RefundConfig()
+        let refundConfig = new RefundConfig(true) // just arbitrarily always allow refunds
         let claimTokensConfig = new ClaimTokensConfig(dealData.startupTokenAddress, dealData.dealdexFeeBps, dealData.managerFeeBps)
         let claimFundsConfig = new ClaimFundsConfig(dealData.dealdexFeeBps, dealData.managerFeeBps)
         let vestingSchedule = new VestingSchedule(dealData.vestingStrategy, dealData.vestingBps, dealData.vestingTimestamps)
@@ -111,15 +111,21 @@ export default class DealService {
         var investmentDeadline = config.investConfig.investmentDeadline
         investmentDeadline = new Date(investmentDeadline.toNumber() * 1000) // Seconds -> Milliseconds
 
+        var vestingStrategy = config.vestingSchedule.vestingStrategy
+        var investmentKeyType = config.investmentKeyType
+
         let project = await DatabaseService.getUser(startupAddress) || User.empty(startupAddress)
         let investors = investorAddresses.map(async function(investorAddress: string, index: Number){
             return await DatabaseService.getUser(investorAddress) || User.empty(investorAddress)
         })
         let dealMetadata = await DatabaseService.getDealMetadata(dealAddress)
+        
         const deal = new Deal(
             project,
             investors,
             investorAmounts,
+            vestingStrategy,
+            investmentKeyType,
             dealMetadata?.get("name"),
             dealAddress,
             ethPerToken,

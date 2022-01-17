@@ -21,17 +21,19 @@ class Deal {
     vestPercent?: number
     dealdexFeeBps?: number
     managerFeeBps?: number
-    vestingStrategy?: string // should be an enum corresponding to the VestingStrategy in DealConfig.sol
+    vestingStrategy: number // should be an enum corresponding to the VestingStrategy in DealConfig.sol
     vestingBps?: number[]
     vestingTimestamps?: Date[]
     investmentTokenAddress?: string
-    investmentKeyType?: string // should be an enum corresponding to the InvestmentKeyType in InvestmentKey.sol
+    investmentKeyType: number // should be an enum corresponding to the InvestmentKeyType in InvestmentKey.sol
     dealdexAddress?: string
     managerAddress?: string
 
     constructor(startup: User, 
                 investors: User[], 
                 investorAmounts: string[],
+                vestingStrategy: number,
+                investmentKeyType: number,
                 name?: string, 
                 dealAddress?: string,
                 ethPerToken?: string,
@@ -48,11 +50,9 @@ class Deal {
                 vestPercent?: number,
                 dealdexFeeBps?: number,
                 managerFeeBps?: number,
-                vestingStrategy?: string,
                 vestingBps?: number[],
                 vestingTimestamps?: Date[],
                 investmentTokenAddress?: string,
-                investmentKeyType?: string,
                 dealdexAddress?: string,
                 managerAddress?: string) {
         this.name = name
@@ -84,7 +84,11 @@ class Deal {
     }
 
     static empty() {
-        return new Deal(User.empty(), [], [])
+        // Default such that for an empty deal, the vesting strategy is 
+        // PROPORTIONAL, meaning each investor gets x% of her tokens investment,
+        // and the investment key type is GATE_TOKEN, meaning that only the 
+        // owner of the gate token that the investor owned can withdraw funds
+        return new Deal(User.empty(), [], [], 0, 1)
     }
 }
 
