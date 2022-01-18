@@ -1,7 +1,7 @@
 import User from './User';
 
 
-class Deal {
+export default class Deal {
     name?: string
     dealAddress?: string
     startup: User

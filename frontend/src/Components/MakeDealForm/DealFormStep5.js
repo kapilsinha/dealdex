@@ -8,9 +8,13 @@ import { NFTName, Symbols, ConvertAddress } from "../../Utils/ComponentUtils";
 import {MakeDealFormContext} from '../../Contexts/MakeDealFormContext'
 import {NetworkContext} from '../../Contexts/NetworkContext'
 import SmartContractService from '../../Services/SmartContractService'
+import DealService from "../../Services/DealService";
+import User from '../../DataModels/User';
+import Deal from '../../DataModels/DealData';
 
 
 function DealFormStep5(props) {
+  const {user} = useMoralis();
 
   const {
     decrementStep, 
@@ -50,8 +54,27 @@ function DealFormStep5(props) {
   })
   const [isLoading, setIsLoading] = useState(true)
 
-  function createDeal() {
+  const vestDates = vestingSchedule.filter((vestDate, vestPercent) => Date(vestDate))
+  const vestPercents = vestingSchedule.filter((vestDate, vestPercent) => vestPercent)
+  const dealData = useState(Deal.empty())
 
+  async function createDeal() {
+    dealData.startup = User.createUser(projectWalletAddress, "projectName")
+    dealData.name = dealName
+    dealData.vestingTimestamps = vestDates
+    dealData.vestingBps = vestPercents
+    dealData.startupTokenAddress = projectTokenAddress
+    dealData.investmentTokenAddress = paymentTokenAddress
+    dealData.minTotalInvestment = minRoundSize
+    dealData.maxTotalInvestment = maxRoundSize
+    dealData.investmentDeadline = Date(investDeadline)
+    dealData.tokenPrice = projectTokenPrice
+    dealData.managerAddress = syndicateWalletAddress
+    dealData.managerFeeBps = syndicationFee
+
+    const userData = User.createUser(user.address, "username")
+
+    await DealService.publishDeal(dealData, userData)
   }
   useEffect(()=>{
     async function initalizeDisplayValues() {
