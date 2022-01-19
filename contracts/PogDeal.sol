@@ -31,6 +31,11 @@ contract DealFactory is CloneFactory, Initializable {
         dealdexAddress = _dealdexAddress;
     }
 
+    constructor(address _dealContractAddress, address _dealdexAddress) {
+        dealContractAddress = _dealContractAddress;
+        dealdexAddress = _dealdexAddress;
+    }
+
     // Events
     event DealCreated(address indexed creator, address indexed project, address dealAddress);
 

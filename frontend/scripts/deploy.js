@@ -25,11 +25,12 @@ async function main() {
 
   const dealdexAddress = "0xBb6354C590d49D8c81B2b86D3972dD0Be6976478";
   const DealFactory = await hre.ethers.getContractFactory("DealFactory");
-  const dealFactory = await hre.upgrades.deployProxy(DealFactory, [deal.address, dealdexAddress], { initializer: 'initialize' });
+  const dealFactory = await DealFactory.deploy(deal.address, dealdexAddress);
+  // hre.upgrades.deployProxy(DealFactory, [deal.address, dealdexAddress], { initializer: 'initialize' });
   await dealFactory.deployed();
 
-  console.log("Upgradable DealFactory Proxy deployed to:", dealFactory.address);
-  const dealFactoryImplAddress = await hre.upgrades.erc1967.getImplementationAddress(dealFactory.address);
+  console.log("Non-upgradable DealFactory Proxy deployed to:", dealFactory.address);
+  const dealFactoryImplAddress = dealFactory.address; //await hre.upgrades.erc1967.getImplementationAddress(dealFactory.address);
   console.log("DealFactory underlying implementation deployed to:", dealFactoryImplAddress);
 
   const SimpleToken = await hre.ethers.getContractFactory("SimpleToken");
