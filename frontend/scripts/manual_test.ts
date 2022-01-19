@@ -41,13 +41,17 @@ class ManualTestHelper {
 
 	async createDeal() {
 		return await helper.createDeal(this.dealFactory!, this.accounts[0].address, this.accounts[1].address, this.simpleToken!, this.usdp!, this.simpleNft!);
-	}	
+	}
+
+	async createKapDeal() {
+		return await helper.createDeal(this.dealFactory!, "0xBb6354C590d49D8c81B2b86D3972dD0Be6976478", "0xDA144333D1F0172963F2f0a20F9C4686E8829141", this.simpleToken!, this.usdp!, this.simpleNft!);
+	}
 }
 
 async function main() {
 	let testHelper = new ManualTestHelper();
 	await testHelper.init();
-	await testHelper.createDeal();
+	await testHelper.createKapDeal();
 }
 
 main()

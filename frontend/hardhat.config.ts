@@ -105,7 +105,6 @@ task("writeMoralisDealMetadata", "Initializes a Moralis Object with the deal and
     const deploymentState = new DeploymentState();
     deploymentState.set("dealAddr", state.contractAddresses.Deal);
     deploymentState.set("dealFactoryAddr", state.contractAddresses.DealFactory);
-    deploymentState.set("dealFactoryImplAddr", state.contractAddresses.DealFactoryImpl);
 
     // Below is for testing convenience, obviously not relevant for prod usage
     deploymentState.set("simpleTokenAddr", state.contractAddresses.SimpleToken);

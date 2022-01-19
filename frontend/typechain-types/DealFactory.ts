@@ -165,7 +165,6 @@ export interface DealFactoryInterface extends utils.Interface {
     "createDeal(((address,address,address),(uint256,uint256),((uint256,uint256,uint256,uint256),uint8,address,address,uint8,uint256),(bool,uint8),(address,uint16,uint16,uint8),(uint16,uint16,uint8),(uint8,uint16[],uint256[])))": FunctionFragment;
     "dealContractAddress()": FunctionFragment;
     "dealdexAddress()": FunctionFragment;
-    "initialize(address,address)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -180,10 +179,6 @@ export interface DealFactoryInterface extends utils.Interface {
     functionFragment: "dealdexAddress",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "initialize",
-    values: [string, string]
-  ): string;
 
   decodeFunctionResult(functionFragment: "createDeal", data: BytesLike): Result;
   decodeFunctionResult(
@@ -194,7 +189,6 @@ export interface DealFactoryInterface extends utils.Interface {
     functionFragment: "dealdexAddress",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
 
   events: {
     "DealCreated(address,address,address)": EventFragment;
@@ -246,12 +240,6 @@ export interface DealFactory extends BaseContract {
     dealContractAddress(overrides?: CallOverrides): Promise<[string]>;
 
     dealdexAddress(overrides?: CallOverrides): Promise<[string]>;
-
-    initialize(
-      _dealContractAddress: string,
-      _dealdexAddress: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
   };
 
   createDeal(
@@ -263,12 +251,6 @@ export interface DealFactory extends BaseContract {
 
   dealdexAddress(overrides?: CallOverrides): Promise<string>;
 
-  initialize(
-    _dealContractAddress: string,
-    _dealdexAddress: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   callStatic: {
     createDeal(
       _dealConfig: DealConfigStruct,
@@ -278,12 +260,6 @@ export interface DealFactory extends BaseContract {
     dealContractAddress(overrides?: CallOverrides): Promise<string>;
 
     dealdexAddress(overrides?: CallOverrides): Promise<string>;
-
-    initialize(
-      _dealContractAddress: string,
-      _dealdexAddress: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
   };
 
   filters: {
@@ -308,12 +284,6 @@ export interface DealFactory extends BaseContract {
     dealContractAddress(overrides?: CallOverrides): Promise<BigNumber>;
 
     dealdexAddress(overrides?: CallOverrides): Promise<BigNumber>;
-
-    initialize(
-      _dealContractAddress: string,
-      _dealdexAddress: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -327,11 +297,5 @@ export interface DealFactory extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     dealdexAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    initialize(
-      _dealContractAddress: string,
-      _dealdexAddress: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
   };
 }

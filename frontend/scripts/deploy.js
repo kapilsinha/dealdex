@@ -17,22 +17,18 @@ async function main() {
   // We get the contract to deploy
   
   const Deal = await hre.ethers.getContractFactory("Deal");
+  console.log("deploying deal...")
   const deal = await Deal.deploy();
-
+  console.log("Waiting for deal to be deployed...")
   await deal.deployed();
-
   console.log("Deal contract (which will be cloned) deployed to:", deal.address);
 
   const dealdexAddress = "0xBb6354C590d49D8c81B2b86D3972dD0Be6976478";
   const DealFactory = await hre.ethers.getContractFactory("DealFactory");
   const dealFactory = await DealFactory.deploy(deal.address, dealdexAddress);
-  // hre.upgrades.deployProxy(DealFactory, [deal.address, dealdexAddress], { initializer: 'initialize' });
   await dealFactory.deployed();
-
-  console.log("Non-upgradable DealFactory Proxy deployed to:", dealFactory.address);
-  const dealFactoryImplAddress = dealFactory.address; //await hre.upgrades.erc1967.getImplementationAddress(dealFactory.address);
-  console.log("DealFactory underlying implementation deployed to:", dealFactoryImplAddress);
-
+  console.log("DealFactory deployed to:", dealFactory.address);
+  
   const SimpleToken = await hre.ethers.getContractFactory("SimpleToken");
   const simpleToken = await SimpleToken.deploy("Simple Token", "SMPL", 10000, 18);
   await simpleToken.deployed();
@@ -62,7 +58,6 @@ async function main() {
   const addresses = {
     'Deal': deal.address,
     'DealFactory': dealFactory.address,
-    'DealFactoryImpl': dealFactoryImplAddress,
     'SimpleToken': simpleToken.address,
     'USDP': usdp.address,
     'SimpleNFT': simpleNft.address

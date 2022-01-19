@@ -2,7 +2,6 @@
 pragma solidity ^0.8.4;
 
 import "hardhat/console.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./CloneFactory.sol";
@@ -13,23 +12,13 @@ import "./structs/InvestmentKey.sol";
 import "./structs/Overrides.sol";
 
 // Upgradable contract (deployed via proxy)
-contract DealFactory is CloneFactory, Initializable {
+contract DealFactory is CloneFactory {
 
     // State Variables
     // Because this contract is upgradable, you can NEVER replace or remove existing state
     // variables (storage collision). You are free to append to it
     address public dealContractAddress;
     address public dealdexAddress;
-
-    // Initializer
-    // You CANNOT have a 'constructor' in this contract because it is upgradable
-    // and constructors are not deployed in the runtime bytecode. Thus we
-    // use a normal 'initializer' function (the name of this function is specified
-    // in the deployProxy) and use Initializable to ensure it's called exactly once
-    function initialize(address _dealContractAddress, address _dealdexAddress) public initializer {
-        dealContractAddress = _dealContractAddress;
-        dealdexAddress = _dealdexAddress;
-    }
 
     constructor(address _dealContractAddress, address _dealdexAddress) {
         dealContractAddress = _dealContractAddress;

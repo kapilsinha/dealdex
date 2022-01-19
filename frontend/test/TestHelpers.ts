@@ -122,6 +122,7 @@ async function createDeal(
     let Deal = await ethers.getContractFactory("Deal");
 
     const transaction = await dealFactory.createDeal(config);
+    console.log("Waiting for transaction to complete:", transaction)
 
     const receipt = await transaction.wait()
     for (let eventData of receipt.events!) {
