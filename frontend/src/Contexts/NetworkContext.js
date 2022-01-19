@@ -49,7 +49,7 @@ export const NetworkProvider = ({ children }) => {
         }
       }
       switchWalletNetwork()
-    }, [networkIndex, isWeb3Enabled])
+    }, [networkIndex, walletChain, isWeb3Enabled])
 
   return (
     <NetworkContext.Provider value={{ selectedNetworkName, selectedNetworkChainId, allNetworkNames, setNetworkIndex, walletChain }}>{children}</NetworkContext.Provider>

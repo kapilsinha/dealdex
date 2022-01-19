@@ -32,6 +32,10 @@ export default class User extends Moralis.User {
         return user
     }
 
+    getAddress() {
+        return SmartContractService.getChecksumAddress(this.get("ethAddress"))
+    }
+
     async refresh() {
         await this.fetch();
     }

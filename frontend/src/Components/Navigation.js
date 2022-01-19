@@ -23,7 +23,7 @@ function Navigation() {
     if (walletChain && (walletChain != selectedNetworkChainId)) {
       alert("Change your network to " + selectedNetworkName)
     }
-  }, [walletChain])
+  }, [walletChain, selectedNetworkChainId])
 
   const onLogin = async () => {
     try {

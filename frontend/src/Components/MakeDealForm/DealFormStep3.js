@@ -209,6 +209,7 @@ function DealFormStep3(props) {
                         width="50%"
                         maxvalue={100}
                         appendChar = {"%"}
+                        precision = {2} // We are using Bps for percentages
                         helperText = "Percentage of tokens that will vest on the selected date"
                     />
                 </HStack>

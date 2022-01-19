@@ -174,6 +174,7 @@ export function MakeDealFormNumberItem(props) {
     let helperText = props.helperText
     let errorText = props.errorText
     let value = props.value
+    let precision = props.precision
     var isRequired 
     if (props.isRequired) {
         isRequired = props.isRequired
@@ -195,6 +196,7 @@ export function MakeDealFormNumberItem(props) {
                     onChange={onChange}
                     placeholder={placeholder}
                     isDisabled={props.disabled}
+                    precision={precision}
                 >
                     <NumberInputField />
                     {(props.appendChar) && 

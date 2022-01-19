@@ -2,7 +2,7 @@ import {ethers, BigNumber, Signer, providers } from 'ethers';
 import {BigNumber as BigNumberJS} from "bignumber.js"
 import User from '../DataModels/User';
 import {Deal} from '../DataModels/DealData'
-import {DealConfig, ParticipantAddresses, ExchangeRate, InvestConfig, RefundConfig, ClaimTokensConfig, ClaimFundsConfig, VestingSchedule} from '../DataModels/DealConfig'
+import {DealConfig, DealToken, ParticipantAddresses, ExchangeRate, InvestConfig, RefundConfig, ClaimTokensConfig, ClaimFundsConfig, VestingSchedule} from '../DataModels/DealConfig'
 import SmartContractService from "./SmartContractService"
 
 
@@ -12,62 +12,122 @@ import DealMetadata from '../DataModels/DealMetadata';
 
 export default class DealService {
 
-    static async publishDeal(dealData: Deal, user: User) { 
-        let signer = await SmartContractService.getSignerForUser(user)       
-        const creatorAddress = await signer!.getAddress()
-        const startupAddress = dealData.startup.get("address")
+    static async publishPendingDeal(user: User,
+                                    chainId: number,
+                                    dealName: string, 
+                                    nftAddress: string,
+                                    paymentTokenAddress: string,
+                                    minRoundSize: string,
+                                    maxRoundSize: string,
+                                    minInvestPerInvestor: string,
+                                    maxInvestPerInvestor: string,
+                                    investDeadline: string,
+                                    projectWalletAddress: string,
+                                    projectTokenPrice: string,
+                                    vestingSchedule: Array<{percent: string, date: string}>,
+                                    projectTokenAddress?: string,
+                                    syndicateWalletAddress?: string,
+                                    syndicationFee?: string) {
+        let signer = await SmartContractService.getSignerForUser(user)  
+
+        let dealFactoryAddress = await DatabaseService.getDealFactoryAddress()
+        console.log(user)
+        console.log(user.get("address"))
+        console.log(user.getAddress())
+        console.log(dealFactoryAddress)
+
+        if (!signer || !dealFactoryAddress) {
+            return {error: "Unable to create deal. Please try again"}
+        }
+
+        let paymentToken = await DealToken.fromContractAddress(paymentTokenAddress, chainId)
+
+        // If there is no project token then assume project and payment token have the same decimals
+        var projectToken = paymentToken
+        if (projectTokenAddress) {
+            var projectToken = await DealToken.fromContractAddress(projectTokenAddress, chainId)
+
+            if (!projectToken) {
+                return {error: "Invalid project token"}
+            }
+        }
+
+        if (!paymentToken) {
+            return {error: "Invalid payment token"}
+        }
         
-
-        const minWeiPerInvestor = ethers.utils.parseEther(dealData.minInvestmentPerInvestor!.toString())
-        const maxWeiPerInvestor = ethers.utils.parseEther(dealData.maxInvestmentPerInvestor!.toString()) 
-
-        const minTotalWei = ethers.utils.parseEther(dealData.minTotalInvestment!.toString())
-        const maxTotalWei = ethers.utils.parseEther(dealData.maxTotalInvestment!.toString())
-
-        const deadlineUnixTimestamp = Math.round( 
-            dealData.investmentDeadline!.getTime() / 1000
+        let participantsConfig = new ParticipantAddresses(
+            dealFactoryAddress, 
+            syndicateWalletAddress, 
+            projectWalletAddress 
         )
-        const deadline = BigNumber.from(deadlineUnixTimestamp.toString())
+        let exchangeRateConfig = ExchangeRate.fromDisplayValue(
+            projectTokenPrice,
+            paymentToken,
+            projectToken
+        )
 
-        const gateToken = dealData.gateToken
+        let investConfig = new InvestConfig(
+            paymentToken.getTokenBits(minInvestPerInvestor), 
+            paymentToken.getTokenBits(maxInvestPerInvestor),
+            paymentToken.getTokenBits(minRoundSize),
+            paymentToken.getTokenBits(maxRoundSize),
+            nftAddress,
+            new Date(investDeadline),
+            paymentTokenAddress,
+            1   // This means that the investment is tied to the NFT
+        )
 
-        let participantAddresses = new ParticipantAddresses(dealData.dealdexAddress, dealData.managerAddress, startupAddress)
-        let exchangeRateConfig = await getTickDetailsConfig(dealData, user)
-        let investConfig = new InvestConfig(minWeiPerInvestor, maxWeiPerInvestor, minTotalWei, maxTotalWei, gateToken, deadline, dealData.investmentTokenAddress, dealData.investmentKeyType)
-        let refundConfig = new RefundConfig(true) // just arbitrarily always allow refunds
-        let claimTokensConfig = new ClaimTokensConfig(dealData.startupTokenAddress, dealData.dealdexFeeBps, dealData.managerFeeBps)
-        let claimFundsConfig = new ClaimFundsConfig(dealData.dealdexFeeBps, dealData.managerFeeBps)
-        let vestingSchedule = new VestingSchedule(dealData.vestingStrategy, dealData.vestingBps, dealData.vestingTimestamps)
+        let refundConfig = new RefundConfig(true)   // Allow refunds
+
+        var managerFeeBps = 0
+        if (syndicationFee) {
+            managerFeeBps = Number(syndicationFee) * 100    // Convert to basis points
+        }
+
+        let claimTokensConfig = new ClaimTokensConfig(
+            1,  // DealDex fee is overridden in smart contract
+            projectTokenAddress,
+            managerFeeBps
+        )
+
+        let claimFundsConfig = new ClaimFundsConfig(
+            1,  // DealDex fee is overridden in smart contract
+            0   // Currently the syndication fee is only in project tokens, not payment tokens
+        )
+
+        let vestingConfig = new VestingSchedule(
+            0,
+            vestingSchedule.map((vest) => Number(vest.percent) * 100),  // Convert to basis points
+            vestingSchedule.map((vest) => new Date(vest.date))
+        )
 
         let dealConfig = new DealConfig(
-            participantAddresses,
+            participantsConfig,
             exchangeRateConfig,
             investConfig,
             refundConfig,
             claimTokensConfig,
             claimFundsConfig,
-            vestingSchedule
+            vestingConfig
         )
 
-        const dealFactoryAddress = await DatabaseService.getDealFactoryAddress()
 
-        if (dealFactoryAddress === undefined) {
-            console.log("Error: unable to find deal factory")
-            return
+        let txn = await SmartContractService.createDeal(dealFactoryAddress, signer, dealConfig)
+        /// TODO: This should be done in Moralis backend
+        if (txn.error) {
+            return txn 
+        } else {
+            // await DatabaseService.recordPendingDeal(
+            //     user,
+            //     dealConfig,
+            //     new DealMetadata(dealData.get("name")!),
+            //     txn.hash
+            // )
+            return txn
         }
 
-        let txn = await SmartContractService.createDeal(dealFactoryAddress!, signer!, dealConfig)
-        /// TODO: This should be done in Moralis backend
-        // if (txn.error == null) {
-        //     await DatabaseService.recordPendingDeal(
-        //         user,
-        //         dealConfig,
-        //         new DealMetadata(dealData.get("name")!),
-        //         txn.hash
-        //     )
-        // }
-        return txn;
-    } 
+    }
 
     static async fetchDeal(provider: providers.Provider, dealAddress: string) {
         const config = await SmartContractService.fetchDealConfig(dealAddress, provider)
@@ -182,13 +242,19 @@ export default class DealService {
                                     dealData: Deal, 
                                     newStartupTokenAddress: string, 
                                     newStartupTokenPrice: string) {
-        const newDeal = Deal.empty()
-        newDeal.ethPerToken = newStartupTokenPrice
-        newDeal.startupTokenAddress = newStartupTokenAddress
-        const exchangeRate = await getTickDetailsConfig(newDeal, user)
 
-        const signer = await SmartContractService.getSignerForUser(user)
-        return await SmartContractService.updateProjectToken(dealData.dealAddress!, newStartupTokenAddress, exchangeRate, signer!)
+        // TODO: Update this
+
+        // const newDeal = Deal.empty()
+        // newDeal.ethPerToken = newStartupTokenPrice
+        // newDeal.startupTokenAddress = newStartupTokenAddress
+        // const exchangeRate = await getExchangeRateConfig(user, newStartupTokenPrice, "")
+        
+        // const signer = await SmartContractService.getSignerForUser(user)
+        // if (exchangeRate && signer) {
+        //     return await SmartContractService.updateProjectToken(dealData.dealAddress!, newStartupTokenAddress, exchangeRate, signer)
+        // }
+        
     }
 }
 
@@ -242,28 +308,6 @@ function isInvalidAddress(address: any) {
     return address === undefined || address === ""
 }
 
-
-// tickSize is in wei. tickValue is in tokenBits.
-async function getTickDetailsConfig(dealData: Deal, user: User): Promise<ExchangeRate> {
-    let startupTokenAddress = dealData.startupTokenAddress
-
-    if (isInvalidAddress(dealData.startupTokenAddress)) {
-        return ExchangeRate.undefined()
-    }
-
-    if (dealData.ethPerToken === undefined) {
-        return ExchangeRate.undefined()
-    }
-
-    let signer = await SmartContractService.getSignerForUser(user)
-    const decimals = await SmartContractService.getERC20Decimals(startupTokenAddress!, signer!)
-
-    if (decimals === undefined) {
-        return ExchangeRate.undefined()
-    }
-    let result = new ExchangeRate(dealData.ethPerToken, decimals)
-    return result
-}
 
 
 function getEthPerToken(tickSize: BigNumber, tickValue: BigNumber, tokenDecimals: number): string {
