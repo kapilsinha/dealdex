@@ -7,12 +7,8 @@ import '@openzeppelin/hardhat-upgrades';
 
 import 'hardhat-contract-sizer';
 import { task } from "hardhat/config";
-
 import Moralis from 'moralis/node';
 import moralisConfig from '../secrets/moralisConfig.json';
-
-import ropsten from '../secrets/ropsten_infura.json'
-import mumbai from '../secrets/mumbai_infura.json'
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -135,7 +131,7 @@ task("writeMoralisDealMetadata", "Initializes a Moralis Object with the deal and
  * @type import('hardhat/config').HardhatUserConfig
  */
 
-let config = {
+var config = {
   solidity: {
     version: "0.8.4",
     settings: {
@@ -157,9 +153,23 @@ let config = {
     hardhat: {
       chainId: 1337
     },
-    ropsten: ropsten,
-    mumbai: mumbai
   },
+} as any
+
+try {
+  let ropsten = require('../secrets/ropsten_infura.json')
+  config.networks.ropsten = ropsten
+} catch {
+  console.log("Unable to load Ropsten infura credentials")
 }
+
+try {
+  let mumbai = require('../secrets/mumbai_infura.json')
+  config.networks.mumbai = mumbai
+} catch {
+  console.log("Unable to load Mumbai infura credentials")
+}
+
+
 
 export default config

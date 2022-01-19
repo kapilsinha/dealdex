@@ -71,6 +71,7 @@ function DealFormStep4(props) {
             maxvalue={100}
             appendChar = "%"
             disabled = {!getValidatedAddress(syndicateWalletAddress)}
+            precision = {2} // We are using Bps for percentages 
             helperText = "Percentage of the project token you will receive"
         />
         </HStack>

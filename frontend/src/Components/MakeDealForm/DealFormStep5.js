@@ -3,14 +3,19 @@ import { useEffect, useMemo, useContext, useState} from "react";
 import { useMoralis } from "react-moralis";
 import { APP_ID, SERVER_URL } from "../../App";
 
-import { Text, GridItem, VStack, HStack, Button, Box } from "@chakra-ui/react";
+import { Text, GridItem, VStack, HStack, Button, Box, useToast } from "@chakra-ui/react";
 import { NFTName, Symbols, ConvertAddress } from "../../Utils/ComponentUtils";
 import {MakeDealFormContext} from '../../Contexts/MakeDealFormContext'
 import {NetworkContext} from '../../Contexts/NetworkContext'
 import SmartContractService from '../../Services/SmartContractService'
+import DealService from "../../Services/DealService";
 
 
 function DealFormStep5(props) {
+
+  const {user} = useMoralis()
+
+  const toast = useToast();
 
   const {
     decrementStep, 
@@ -31,10 +36,6 @@ function DealFormStep5(props) {
   } = useContext(MakeDealFormContext)
   const {selectedNetworkChainId} = useContext(NetworkContext)
 
-  const [nftMetadata, setNftMetadata] = useState(undefined);
-  const [paymentTokenMetadata, setPaymentTokenMetadata] = useState(undefined)
-  const [projectTokenMetadata, setProjectTokenMetadata] = useState(undefined)
-
   const [displayValues, setDisplayValues] = useState({
     dealNameDisplay: "-",
     projectTokenDisplay: "-",
@@ -50,9 +51,44 @@ function DealFormStep5(props) {
   })
   const [isLoading, setIsLoading] = useState(true)
 
-  function createDeal() {
-
+  async function createDeal() {
+    setIsLoading(true)
+    const result = await DealService.publishPendingDeal(
+      user,
+      selectedNetworkChainId,
+      dealName, 
+      nftAddress,
+      paymentTokenAddress,
+      minRoundSize,
+      maxRoundSize,
+      minInvestPerInvestor,
+      maxInvestPerInvestor,
+      investDeadline,
+      projectWalletAddress,
+      projectTokenPrice,
+      vestingSchedule,
+      (projectTokenAddress == "") ? undefined: projectTokenAddress,
+      (syndicateWalletAddress == "") ? undefined: syndicateWalletAddress,
+      (syndicationFee == "") ? undefined: syndicationFee
+    )
+    setIsLoading(false)
+    if (result.error) {
+      toast({
+        title: result.error,
+        status: "error",
+        isClosable: true,
+        position: "bottom-right"
+      })
+    } else {
+      toast({
+        title: "Deal Created",
+        status: "success",
+        isClosable: true,
+        position: "bottom-right"
+      })
+    }
   }
+
   useEffect(()=>{
     async function initalizeDisplayValues() {
         let payment = await SmartContractService.getERC20Metadata(paymentTokenAddress, selectedNetworkChainId)
@@ -166,7 +202,7 @@ function DealFormStep5(props) {
         <Button variant="dealformBack" size="lg" onClick={decrementStep}>
           Back
         </Button>
-        <Button variant="dealForm2Details" size="lg" onClick={createDeal} isDisabled={isLoading}>
+        <Button variant="dealForm2Details" size="lg" onClick={createDeal} isLoading={isLoading}>
           Create your deal
         </Button>
       </HStack>

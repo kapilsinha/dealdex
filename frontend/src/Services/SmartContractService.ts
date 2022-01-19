@@ -146,9 +146,9 @@ export default class SmartContractService {
 
         try {
             const tokenContract = new ethers.Contract(erc20TokenAddress, ERC20_ABI, provider)
-            const name = await tokenContract.name()
-            const symbol = await tokenContract.symbol()
-            const decimals = await tokenContract.decimals()
+            const name = (await tokenContract.name()) as string
+            const symbol = (await tokenContract.symbol()) as string
+            const decimals = (await tokenContract.decimals()) as number
             return {name, symbol, decimals}
         } catch(err) {
             return undefined
@@ -195,12 +195,13 @@ export default class SmartContractService {
             const provider = new ethers.providers.Web3Provider(anyWindow.ethereum)
             const signer = provider.getSigner()
             let signerAddress = await signer.getAddress()
-            if (signerAddress == user.get("address")) {
+            if (signerAddress == user.getAddress()) {
                 return signer
             } else {
                 return undefined
             }
         } else {
+            console.log("err2")
             return undefined
         }
 
