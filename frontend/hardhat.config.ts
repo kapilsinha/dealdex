@@ -156,10 +156,10 @@ let config = {
   networks: {
     hardhat: {
       chainId: 1337
-    }
+    },
+    ropsten: ropsten,
+    mumbai: mumbai
   },
-  ropsten: ropsten,
-  mumbai: mumbai
 }
 
 export default config
