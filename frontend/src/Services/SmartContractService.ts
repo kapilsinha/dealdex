@@ -156,15 +156,15 @@ export default class SmartContractService {
         }
     }
 
-    static async getNFTMetadata(erc20TokenAddress: string, chainId: number) {
-        if (erc20TokenAddress === ethers.constants.AddressZero) {
+    static async getNFTMetadata(nftAddress: string, chainId: number) {
+        if (nftAddress === ethers.constants.AddressZero) {
             return undefined
         } 
 
         const provider = await getProviderForChainId(chainId)
 
         try {
-            const tokenContract = new ethers.Contract(erc20TokenAddress, ERC20_ABI, provider)
+            const tokenContract = new ethers.Contract(nftAddress, ERC20_ABI, provider)
             const name = await tokenContract.name()
             const symbol = await tokenContract.symbol()
             return {name, symbol}

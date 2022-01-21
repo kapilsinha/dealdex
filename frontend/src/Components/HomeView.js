@@ -44,6 +44,8 @@ const HomeView = () => {
     history.push("/createDeal");
   };
 
+  
+
   return (
     <Container maxW="container.xl" p={0}>
       <Flex h={{ base: "auto", md: "100%" }} py={[0, 10, 20]} direction={{ base: "column-reverse", md: "row" }}>
@@ -75,13 +77,19 @@ const HomeView = () => {
 export default HomeView;
 
 const ListDeals = ({ data = [] }) => {
+  const history = useHistory()
   if (!data.length) return <Box textStyle="titleDeal">No deals created so far</Box>;
+
+  
+  const goToDealDetails = () => {
+    history.push("/dealDetails")
+  }
 
   return (
     <Wrap spacing="45px">
       {data.map((item, index) => (
         <WrapItem key={index}>
-          <Box layerStyle="dealTableWrap">
+          <Box layerStyle="dealTableWrap" onClick={goToDealDetails}>
             <Box textStyle="titleDeal">{item.dealName}</Box>
             <Flex>
               <Box textStyle="subTitleDeal">{item.syndicateAddress}</Box>

@@ -7,6 +7,38 @@ export default class DealMetadata extends Moralis.Object {
         super('Deal')
     }
 
+    getName(): string {
+        return this.get("name")
+    }
+
+    getProject(): NetworkUser {
+        return this.get("project")
+    }
+
+    getManager(): NetworkUser {
+        return this.get("manager")
+    }
+
+    getInvestorPaymentToken(): string {
+        return this.get("investorPaymentToken")
+    }
+
+    getNftAddress(): string {
+        return this.get("nftAddress")
+    }
+
+    getMinInvestmentAmt(): number {
+        return this.get("minInvestmentAmt")
+    }
+
+    getInvestmentDeadline(): number {
+        return this.get("investmentDeadline")
+    }
+
+    getAddress(): string {
+        return this.get("investmentDeadline")
+    }
+
     // TODO: I imagine this is created in the backend and so this can be removed
     static createDeal(
         name: string, 

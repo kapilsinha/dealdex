@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useContext, useState } from "react";
 
 import { Flex, Box, VStack, Wrap, WrapItem, Table, Thead, Tbody, Tr, Th, Td, Badge } from "@chakra-ui/react";
 
@@ -6,7 +6,10 @@ import { TimeDeadline, RoundNumbers, Symbols, NFTName } from "../../Utils/Compon
 
 import { APP_ID, SERVER_URL } from "../../App";
 import { useMoralis } from "react-moralis";
-
+import DatabaseService from "../../Services/DatabaseService";
+import SmartContractService from "../../Services/SmartContractService";
+import {NetworkContext} from "../../Contexts/NetworkContext"
+import {DealToken} from "../../DataModels/DealConfig"
 const DummyData = [
   {
     dealName: "Bright Windows",
@@ -30,11 +33,62 @@ const DummyData = [
 
 const AccountDeals = () => {
   const dataDeals = useMemo(() => DummyData, []);
-  const { Moralis } = useMoralis();
+  const { Moralis, user } = useMoralis();
+
+  const {selectedNetworkChainId} = useContext(NetworkContext)
+
+  const [deals, setDeals] = useState([])
+
+  async function fetchDeals() {
+    console.log(user)
+    if (!user) {
+      return
+    }
+    const currUser = await DatabaseService.getUser(user.get("ethAddress"))
+
+    const pendingDealsWhereManager = await currUser.getPendingDealsCreated()
+
+    const dealsWhereManager = await currUser.getDealsWhereManager()
+
+    var result = []
+
+    // 
+
+    // for (const pendingDeal of pendingDealsWhereManager) {
+    //   result.push({
+    //     dealName: pendingDeal.getName(),
+    //     managerName: pendingDeal.getManager().getName(),
+    //     nftAddress: pendingDeal.getNftAddress(),
+    //     paymentToken: pendingDeal.getInvestorPaymentToken(),
+    //     minInvestmentAmount: pendingDeal.getMinInvestmentAmt(),
+    //     deadline: pendingDeal.getInvestmentDeadline()
+    //   })
+    // }
+
+    // for (const deal of dealsWhereManager) {
+    //   console.log(deal.getName())
+    //   console.log(deal.getManager())
+    //   console.log(deal)
+    //   console.log(await deal.get("name"))
+    //   result.push({
+    //     dealName: deal.getName(),
+    //     managerName: deal.getManager().getName(),
+    //     nftAddress: deal.getNftAddress(),
+    //     paymentToken: deal.getInvestorPaymentToken(),
+    //     minInvestmentAmount: deal.getMinInvestmentAmt(),
+    //     deadline: deal.getInvestmentDeadline()
+    //   })
+    // }
+
+    setDeals(result)
+  }
 
   useEffect(() => {
     Moralis.start({ serverUrl: SERVER_URL, appId: APP_ID });
-  }, []);
+
+    fetchDeals()
+
+  }, [user]);
 
   return (
     <VStack w="full" h="full" p={0} alignItems="flex-start">
@@ -43,7 +97,7 @@ const AccountDeals = () => {
           Your wallet has created the following deals
         </Box>
       </Flex>
-      <ListDeals data={dataDeals} />
+      <ListDeals data={deals} />
     </VStack>
   );
 };
@@ -60,7 +114,7 @@ const ListDeals = ({ data = [] }) => {
           <Box layerStyle="dealTableWrap">
             <Box textStyle="titleDeal">{item.dealName}</Box>
             <Flex>
-              <Box textStyle="subTitleDeal">{item.syndicateAddress}</Box>
+              <Box textStyle="subTitleDeal">{item.managerName}</Box>
               {item.isVerified && (
                 <Box ml={2}>
                   <Badge variant="verified">VERIFIED</Badge>
@@ -80,10 +134,10 @@ const ListDeals = ({ data = [] }) => {
                 <Tbody>
                   <Tr>
                     <Td>
-                      <NFTName address={item.contractNFT} />
+                      <NFTName address={item.nftAddress} />
                     </Td>
                     <Td>
-                      <RoundNumbers num={item.minInvestmentAmount} /> <Symbols address={item.address} />
+                      <RoundNumbers num={item.minInvestmentAmount} /> <Symbols address={item.paymentToken} />
                     </Td>
                     <Td>
                       <TimeDeadline deadline={item.deadline} />

@@ -40,6 +40,7 @@ function App() {
                 <Route path="/account" >
                     <AccountView  />
                 </Route>
+                <Route path="/dealDetails" component={DealDetailsViewSyndicate} />
                 <Route path="/dealDetailsInvestor" component={DealDetailsViewInvestor} />
                 <Route path="/dealDetailsProject" component={DealDetailsViewProject} />
                 <Route path="/dealDetailsSyndicate" component={DealDetailsViewSyndicate} />

@@ -115,7 +115,7 @@ export default class DealService {
 
         let creator = await DatabaseService.getUser(user.get("ethAddress"));
 
-        let res = await DealService.recordPendingDeal(dealConfig, dealName, creator, paymentToken);
+        let res = await DealService.recordPendingDeal(Number(minInvestPerInvestor), dealConfig, dealName, creator, paymentToken);
         if (res.error !== undefined) {
             return res;
         }
@@ -126,8 +126,7 @@ export default class DealService {
         return txn;
     }
 
-    static async recordPendingDeal(dealConfig: DealConfig, dealName: string, creator: NetworkUser | undefined, paymentToken: DealToken) {
-        let minInvestmentAmt = dealConfig.investConfig.minInvestmentPerInvestor.toNumber() / 10**paymentToken.decimals
+    static async recordPendingDeal(minInvestmentAmt: number, dealConfig: DealConfig, dealName: string, creator: NetworkUser | undefined, paymentToken: DealToken) {
         let project = await DatabaseService.getUser(dealConfig.participantAddresses.projectAddress);
         let manager = await DatabaseService.getUser(dealConfig.participantAddresses.managerAddress);
         if (creator === undefined || project === undefined || manager === undefined) {

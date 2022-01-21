@@ -3,6 +3,7 @@ import NetworkUser from "../DataModels/User"
 import DealMetadata from "../DataModels/DealMetadata"
 // import { DealConfig, DealParticipantAddresses } from "../DataModels/DealConfig";
 import Moralis from "./MoralisService";
+import PendingDeal from "../DataModels/PendingDeal";
 
 export default class DatabaseService {
 
@@ -32,7 +33,7 @@ export default class DatabaseService {
 
     static async getDealMetadata(dealAddr: string): Promise<DealMetadata | undefined> {
         const dealQuery = new Moralis.Query(DealMetadata);
-        dealQuery.equalTo("dealAddr", dealAddr);
+        dealQuery.equalTo("address", dealAddr);
         return await dealQuery.first().then(function(result) {
             return result === undefined ? undefined : result;
         });

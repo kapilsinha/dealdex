@@ -84,7 +84,7 @@ export const NFTName = ({ address }) => {
 
   useEffect(() => {
     async function getNFTMetadata() {
-      const option = { chain: "rinkeby", address: address };
+      const option = { chain: "testnet", address: address };
       const NFT = await Moralis.Web3API.token.getNFTMetadata(option);
       return setNFTName(NFT.name);
     }

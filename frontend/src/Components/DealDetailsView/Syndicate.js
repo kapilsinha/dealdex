@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button, Container, Flex, FormControl, FormLabel, Heading, Table, Tbody, Td, Text, Th, Thead, Tr, VStack, Box, HStack, Badge, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, InputLeftElement, FormHelperText, Tabs, TabList, TabPanels, Tab, TabPanel, Select } from "@chakra-ui/react";
 import StepPercent from "./Components/step-percent";
 import ProgressPercent from "./Components/progress-percent";
+import {useLocation, useHistory} from 'react-router-dom'
 
 import { ReactComponent as IconArrowRightUpLine } from "../../assets/icon/ArrowRightUpLine.svg";
 import MyInvestment from './Components/my-investment';
 
 import { RoundNumbers } from "../../Utils/ComponentUtils";
+import DatabaseService from "../../Services/DatabaseService";
 
 const DummyData = {
   ethPerToken: "Postered Coin (PSTRD)",
@@ -27,6 +29,20 @@ const DummyData = {
 
 function DealDetailsViewProject(props) {
   const [dealData, setDealData] = useState(DummyData);
+
+  const search = useLocation().search
+  const dealAddress  = new URLSearchParams(search).get('address')
+
+  
+
+  useEffect(() => { 
+    //fetchDeal(); 
+    async function fetchDeal() {
+      const dealMetadata = await DatabaseService.getDealMetadata(dealAddress)
+      console.log(dealMetadata)
+    }
+    fetchDeal()
+  }, []);
 
   return (
     <Container maxW="container.xl" p={0}>

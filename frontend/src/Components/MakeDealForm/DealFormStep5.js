@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useContext, useState} from "react";
 
 import { useMoralis } from "react-moralis";
+import {useHistory} from "react-router-dom"
 import { APP_ID, SERVER_URL } from "../../App";
 
 import { Text, GridItem, VStack, HStack, Button, Box, useToast } from "@chakra-ui/react";
@@ -16,6 +17,8 @@ function DealFormStep5(props) {
   const {user} = useMoralis()
 
   const toast = useToast();
+
+  const history = useHistory();
 
   const {
     decrementStep, 
@@ -86,6 +89,8 @@ function DealFormStep5(props) {
         isClosable: true,
         position: "bottom-right"
       })
+      history.push("/account")
+
     }
   }
 

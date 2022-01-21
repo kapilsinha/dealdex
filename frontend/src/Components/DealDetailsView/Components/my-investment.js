@@ -46,17 +46,17 @@ function MyInvestment(props) {
                     <Tbody>
                         {
                             props.dealData.nftTokenArray.map((nft) => {
-                                getNFTMetadata(nft).then((metaData) => {
-                                    console.log(metaData)
-                                    if(!metaData) return null
-                                    return (
-                                        <Tr>
-                                        <Td px={2}>{metaData[0].symbol} #{metaData[0].id}</Td>
-                                        <Td px={2}>{props.dealData.unit} {1000}</Td>
-                                        <Td px={1} py={0} bg="white">{props.dealData.deadlineOver ? <Button variant="dealDetailTable">Claim tokens</Button> : <Button variant="dealDetailTable">Refund</Button>}</Td>
-                                        </Tr>
-                                    )
-                                });                                
+                                // getNFTMetadata(nft).then((metaData) => {
+                                //     console.log(metaData)
+                                //     if(!metaData) return null
+                                //     return (
+                                //         <Tr>
+                                //         <Td px={2}>{metaData[0].symbol} #{metaData[0].id}</Td>
+                                //         <Td px={2}>{props.dealData.unit} {1000}</Td>
+                                //         <Td px={1} py={0} bg="white">{props.dealData.deadlineOver ? <Button variant="dealDetailTable">Claim tokens</Button> : <Button variant="dealDetailTable">Refund</Button>}</Td>
+                                //         </Tr>
+                                //     )
+                                // });                                
                             })
                         }
                     </Tbody>

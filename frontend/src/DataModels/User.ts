@@ -15,6 +15,10 @@ export default class NetworkUser extends Moralis.Object {
         super("NetworkUser")
     }
 
+    getName(): string {
+        return this.get("name")
+    }
+
     static createUser(
         address: string, 
         username: string

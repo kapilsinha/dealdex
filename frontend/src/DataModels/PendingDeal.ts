@@ -7,6 +7,38 @@ export default class PendingDeal extends Moralis.Object {
         super('PendingDeal')
     }
 
+    getName() {
+        return this.get("name")
+    }
+
+    getCreator(): NetworkUser {
+        return this.get("creator")
+    }
+
+    getManager(): NetworkUser {
+        return this.get("manager")
+    }
+
+    getProject(): NetworkUser {
+        return this.get("project")
+    }
+
+    getMinInvestmentAmt() {
+        return this.get("minInvestmentAmt")
+    }
+
+    getNftAddress() {
+        return this.get("nftAddress")
+    }
+
+    getInvestmentDeadline() {
+        return this.get("investmentDeadline")
+    }
+
+    getInvestorPaymentToken(): string {
+        return this.get("investorPaymentToken")
+    }
+
     static createPendingDeal(
         name: string, 
         creator: NetworkUser, 
