@@ -293,4 +293,4 @@ function getUnixTimestamp(date: Date) {
     return BigNumber.from(stringTimestamp)
 }
 
-export {DealConfig, ParticipantAddresses, ExchangeRate, InvestConfig, RefundConfig, ClaimTokensConfig, ClaimFundsConfig, VestingSchedule, DealToken}
+export {DealConfig, ParticipantAddresses, ExchangeRate, InvestConfig, RefundConfig, ClaimTokensConfig, ClaimFundsConfig, VestingSchedule, DealToken, getUnixTimestamp}

@@ -10,6 +10,7 @@ import {ethers, BigNumber, Signer, providers } from 'ethers';
 
 import {DealConfig, ExchangeRate} from "../DataModels/DealConfig"
 import DatabaseService from "./DatabaseService"
+import Moralis from "./MoralisService"
 
 export default class SmartContractService {
     /* Modify the blockchain */
@@ -187,7 +188,7 @@ export default class SmartContractService {
 
     /* Signers and Providers */
 
-    static async getSignerForUser(user: NetworkUser): Promise<ethers.Signer | undefined> {
+    static async getSignerForUser(user: Moralis.User): Promise<ethers.Signer | undefined> {
 
         let anyWindow = window as any
 

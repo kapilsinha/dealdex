@@ -42,7 +42,6 @@ class ManualTestHelper {
 
 	async recordPendingDeal(dealConfig: DealConfigStruct) {
 		let creatorAddress = "0xBb6354C590d49D8c81B2b86D3972dD0Be6976478"; // must match your ropsten account!!
-		dealConfig.investConfig.investmentTokenAddress
 		let investorPaymentToken = await this.usdp!.name();
 		// TODO: likely need to convert to something readable via decimals function
 		// let investorPaymentDecimals = await this.usdp!.decimals();

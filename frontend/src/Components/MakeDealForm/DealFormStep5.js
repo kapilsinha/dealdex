@@ -53,7 +53,7 @@ function DealFormStep5(props) {
 
   async function createDeal() {
     setIsLoading(true)
-    const result = await DealService.publishPendingDeal(
+    const result = await DealService.createDeal(
       user,
       selectedNetworkChainId,
       dealName, 

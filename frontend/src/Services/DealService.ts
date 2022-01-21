@@ -1,9 +1,12 @@
 import {ethers, BigNumber, Signer, providers } from 'ethers';
 import {BigNumber as BigNumberJS} from "bignumber.js"
 import NetworkUser from '../DataModels/User';
-import {Deal} from '../DataModels/DealData'
-import {DealConfig, DealToken, ParticipantAddresses, ExchangeRate, InvestConfig, RefundConfig, ClaimTokensConfig, ClaimFundsConfig, VestingSchedule} from '../DataModels/DealConfig'
+import { Deal } from '../DataModels/DealData'
+import PendingDeal from '../DataModels/PendingDeal'
+import { DealConfig, DealToken, ParticipantAddresses, ExchangeRate, InvestConfig, RefundConfig, ClaimTokensConfig, ClaimFundsConfig, VestingSchedule, getUnixTimestamp } from '../DataModels/DealConfig'
 import SmartContractService from "./SmartContractService"
+import { DealConfigStruct } from "../../typechain-types/DealFactory";
+import Moralis from "./MoralisService";
 
 
 import DatabaseService from './DatabaseService';
@@ -12,27 +15,26 @@ import DealMetadata from '../DataModels/DealMetadata';
 
 export default class DealService {
 
-    static async publishPendingDeal(user: NetworkUser,
-                                    chainId: number,
-                                    dealName: string, 
-                                    nftAddress: string,
-                                    paymentTokenAddress: string,
-                                    minRoundSize: string,
-                                    maxRoundSize: string,
-                                    minInvestPerInvestor: string,
-                                    maxInvestPerInvestor: string,
-                                    investDeadline: string,
-                                    projectWalletAddress: string,
-                                    projectTokenPrice: string,
-                                    vestingSchedule: Array<{percent: string, date: string}>,
-                                    projectTokenAddress?: string,
-                                    syndicateWalletAddress?: string,
-                                    syndicationFee?: string) {
-        let signer = await SmartContractService.getSignerForUser(user)  
+    static async createDeal(user: Moralis.User,
+                            chainId: number,
+                            dealName: string, 
+                            nftAddress: string,
+                            paymentTokenAddress: string,
+                            minRoundSize: string,
+                            maxRoundSize: string,
+                            minInvestPerInvestor: string,
+                            maxInvestPerInvestor: string,
+                            investDeadline: string,
+                            projectWalletAddress: string,
+                            projectTokenPrice: string,
+                            vestingSchedule: Array<{percent: string, date: string}>,
+                            projectTokenAddress?: string,
+                            syndicateWalletAddress?: string,
+                            syndicationFee?: string) {
+        let signer = await SmartContractService.getSignerForUser(user)
 
         let dealFactoryAddress = await DatabaseService.getDealFactoryAddress()
         console.log(user)
-        console.log(user.get("address"))
         console.log(SmartContractService.getChecksumAddress(user.get("ethAddress")))
         console.log(dealFactoryAddress)
 
@@ -42,7 +44,6 @@ export default class DealService {
 
         let paymentToken = await DealToken.fromContractAddress(paymentTokenAddress, chainId)
 
-        // If there is no project token then assume project and payment token have the same decimals
         var projectToken = paymentToken
         if (projectTokenAddress) {
             var projectToken = await DealToken.fromContractAddress(projectTokenAddress, chainId)
@@ -112,21 +113,39 @@ export default class DealService {
             vestingConfig
         )
 
+        let creator = await DatabaseService.getUser(user.get("ethAddress"));
 
-        let txn = await SmartContractService.createDeal(dealFactoryAddress, signer, dealConfig)
-        /// TODO: This should be done in Moralis backend
-        if (txn.error) {
-            return txn 
-        } else {
-            // await DatabaseService.recordPendingDeal(
-            //     user,
-            //     dealConfig,
-            //     new DealMetadata(dealData.get("name")!),
-            //     txn.hash
-            // )
-            return txn
+        let res = await DealService.recordPendingDeal(dealConfig, dealName, creator, paymentToken);
+        if (res.error !== undefined) {
+            return res;
         }
+        let txn = await SmartContractService.createDeal(dealFactoryAddress, signer, dealConfig)
+        if (txn.error !== undefined) {
+            await DealService.revertPendingDeal(creator!, res.pendingDeal);
+        }
+        return txn;
+    }
 
+    static async recordPendingDeal(dealConfig: DealConfig, dealName: string, creator: NetworkUser | undefined, paymentToken: DealToken) {
+        let minInvestmentAmt = dealConfig.investConfig.minInvestmentPerInvestor.toNumber() / 10**paymentToken.decimals
+        let project = await DatabaseService.getUser(dealConfig.participantAddresses.projectAddress);
+        let manager = await DatabaseService.getUser(dealConfig.participantAddresses.managerAddress);
+        if (creator === undefined || project === undefined || manager === undefined) {
+            console.log("Failed to retrieve all users!", creator, project, manager)
+            return { error: "Failed to retrieve user: please check your internet connection" };
+        }
+        let pendingDeal = PendingDeal.createPendingDeal(dealName, creator, project, manager, paymentToken.name, dealConfig.investConfig.gateToken, minInvestmentAmt,
+            getUnixTimestamp(dealConfig.investConfig.deadline).toNumber());
+        await pendingDeal.save();
+        creator.add("pendingDealsCreated", pendingDeal);
+        await creator.save();
+        return { pendingDeal: pendingDeal }
+    }
+
+    static async revertPendingDeal(creator: NetworkUser, pendingDeal: PendingDeal) {
+        creator.remove("pendingDealsCreated", pendingDeal)
+        await creator.save();
+        await pendingDeal.destroy();
     }
 
     static async fetchDeal(provider: providers.Provider, dealAddress: string) {
