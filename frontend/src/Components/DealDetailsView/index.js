@@ -48,7 +48,7 @@ import {
   
 import DealService from '../../Services/DealService';
 import DatabaseService from '../../Services/DatabaseService';
-import User from "../../DataModels/User"
+import NetworkUser from "../../DataModels/User"
 import StepPercent from './Components/step-percent';
 import ProgressPercent from './Components/progress-percent';
 import Invest from './Components/invest';
@@ -57,7 +57,7 @@ import MyInvestment from './Components/my-investment';
 function DealDetailsView(props) {
     var user = undefined
     if ("userAddress") {
-        user = User.empty("userAddress")
+        user = NetworkUser.empty("userAddress")
     } 
     let history = useHistory()
     const search = useLocation().search

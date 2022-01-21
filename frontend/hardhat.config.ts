@@ -145,7 +145,7 @@ var config = {
   },
   contractSizer: {
     alphaSort: true,
-    runOnCompile: true,
+    runOnCompile: false,
     strict: true,
   },
   networks: {

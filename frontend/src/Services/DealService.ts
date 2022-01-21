@@ -1,6 +1,6 @@
 import {ethers, BigNumber, Signer, providers } from 'ethers';
 import {BigNumber as BigNumberJS} from "bignumber.js"
-import User from '../DataModels/User';
+import NetworkUser from '../DataModels/User';
 import {Deal} from '../DataModels/DealData'
 import {DealConfig, DealToken, ParticipantAddresses, ExchangeRate, InvestConfig, RefundConfig, ClaimTokensConfig, ClaimFundsConfig, VestingSchedule} from '../DataModels/DealConfig'
 import SmartContractService from "./SmartContractService"
@@ -12,7 +12,7 @@ import DealMetadata from '../DataModels/DealMetadata';
 
 export default class DealService {
 
-    static async publishPendingDeal(user: User,
+    static async publishPendingDeal(user: NetworkUser,
                                     chainId: number,
                                     dealName: string, 
                                     nftAddress: string,
@@ -174,9 +174,9 @@ export default class DealService {
         var vestingStrategy = config.vestingSchedule.vestingStrategy
         var investmentKeyType = config.investmentKeyType
 
-        let project = await DatabaseService.getUser(startupAddress) || User.empty(startupAddress)
+        let project = await DatabaseService.getUser(startupAddress) || NetworkUser.empty(startupAddress)
         let investors = investorAddresses.map(async function(investorAddress: string, index: Number){
-            return await DatabaseService.getUser(investorAddress) || User.empty(investorAddress)
+            return await DatabaseService.getUser(investorAddress) || NetworkUser.empty(investorAddress)
         })
         let dealMetadata = await DatabaseService.getDealMetadata(dealAddress)
         
@@ -238,7 +238,7 @@ export default class DealService {
         return await SmartContractService.claimTokens(dealData.dealAddress!, signer)
     }
 
-    static async updateStartupToken(user: User, 
+    static async updateStartupToken(user: NetworkUser, 
                                     dealData: Deal, 
                                     newStartupTokenAddress: string, 
                                     newStartupTokenPrice: string) {
@@ -250,7 +250,7 @@ export default class DealService {
         // newDeal.startupTokenAddress = newStartupTokenAddress
         // const exchangeRate = await getExchangeRateConfig(user, newStartupTokenPrice, "")
         
-        // const signer = await SmartContractService.getSignerForUser(user)
+        // const signer = await SmartContractService.getSignerForNetworkUser(user)
         // if (exchangeRate && signer) {
         //     return await SmartContractService.updateProjectToken(dealData.dealAddress!, newStartupTokenAddress, exchangeRate, signer)
         // }

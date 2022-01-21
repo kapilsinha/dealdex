@@ -1,20 +1,19 @@
-import User from "./User";
-import Moralis from "moralis";
+import Moralis from "../Services/MoralisService";
 
 export default class NFTMetadata extends Moralis.Object {
-    // TODO: change to private?
 	constructor() {
         super('NFT')
     }
 
     static createNFTMetadata(
         address: string, 
-        id: string
+        nftId: string
     )
     {
         let nftMetadata = new NFTMetadata()
         nftMetadata.set("address", address)
-        nftMetadata.set("id", id)
+        // id is a reserved keyword in Moralis, don't use it!
+        nftMetadata.set("nftId", nftId)
         nftMetadata.set("dealAndInvestments", [])
         return nftMetadata
     }

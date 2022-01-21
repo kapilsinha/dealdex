@@ -1,5 +1,5 @@
-import User from "./User";
-import Moralis from "moralis";
+import NetworkUser from "./User";
+import Moralis from "../Services/MoralisService";
 
 export default class PendingDeal extends Moralis.Object {
     // TODO: change to private?
@@ -9,10 +9,9 @@ export default class PendingDeal extends Moralis.Object {
 
     static createPendingDeal(
         name: string, 
-        creator: User, 
-        txnHash: string,
-        project: User, 
-        manager: User,
+        creator: NetworkUser, 
+        project: NetworkUser, 
+        manager: NetworkUser,
         investorPaymentToken: string,
         nftAddress: string,
         minInvestmentAmt: number,
@@ -21,7 +20,7 @@ export default class PendingDeal extends Moralis.Object {
         let pendingDeal = new PendingDeal()
         pendingDeal.set("name", name)
         pendingDeal.set("creator", creator)
-        pendingDeal.set("txnHash", txnHash)
+        pendingDeal.set("txnHash", "pendingTxnHash") // populateed by Moralis backend
         pendingDeal.set("project", project)
         pendingDeal.set("manager", manager)
         pendingDeal.set("investorPaymentToken", investorPaymentToken)

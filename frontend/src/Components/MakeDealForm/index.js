@@ -2,7 +2,7 @@ import React, {useState, setState, useContext} from 'react';
 import {ethers} from 'ethers';
 import {Deal} from '../../DataModels/DealData';
 import DealService from '../../Services/DealService'
-import User from '../../DataModels/User'
+// import User from '../../DataModels/User'
 import { Flex, Container, Box, Center, ChakraProvider } from '@chakra-ui/react';
 import {
     Button,

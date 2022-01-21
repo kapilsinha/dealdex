@@ -5,7 +5,7 @@
 import DealFactory from '../artifacts/contracts/PogDeal.sol/DealFactory.json'
 import Deal from '../artifacts/contracts/PogDeal.sol/Deal.json'
 import ERC20_ABI from "../ContractABIs/ERC20.json"
-import User from "../DataModels/User"
+import NetworkUser from "../DataModels/User"
 import {ethers, BigNumber, Signer, providers } from 'ethers';
 
 import {DealConfig, ExchangeRate} from "../DataModels/DealConfig"
@@ -187,7 +187,7 @@ export default class SmartContractService {
 
     /* Signers and Providers */
 
-    static async getSignerForUser(user: User): Promise<ethers.Signer | undefined> {
+    static async getSignerForUser(user: NetworkUser): Promise<ethers.Signer | undefined> {
 
         let anyWindow = window as any
 

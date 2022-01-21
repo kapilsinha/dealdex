@@ -98,7 +98,8 @@ describe("PogDeal contract", function () {
     // If the callback function is async, Mocha will `await` it.
 
     it("Should create a deal", async function () {
-      await helper.createDeal(dealFactory, accounts[0].address, accounts[1].address, simpleToken, simpleToken2, simpleNft);
+      let dealConfig = helper.createDealConfig(accounts[0].address, accounts[1].address, simpleToken, simpleToken2, simpleNft);
+      await helper.createDeal(dealFactory, dealConfig);
     });
   });
 /*

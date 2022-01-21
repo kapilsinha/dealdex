@@ -1,5 +1,5 @@
-import User from "./User";
-import Moralis from "moralis";
+import NetworkUser from "./User";
+import Moralis from "../Services/MoralisService";
 
 export default class DealMetadata extends Moralis.Object {
     // TODO: change to private?
@@ -10,8 +10,8 @@ export default class DealMetadata extends Moralis.Object {
     // TODO: I imagine this is created in the backend and so this can be removed
     static createDeal(
         name: string, 
-        project: User,
-        manager: User,
+        project: NetworkUser,
+        manager: NetworkUser,
         investorPaymentToken: string,
         nftAddress: string,
         minInvestmentAmt: number,

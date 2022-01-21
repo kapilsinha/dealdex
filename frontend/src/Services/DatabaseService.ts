@@ -1,20 +1,10 @@
 // Import the functions you need from the SDKs you need
-import User from "../DataModels/User"
+import NetworkUser from "../DataModels/User"
 import DealMetadata from "../DataModels/DealMetadata"
 // import { DealConfig, DealParticipantAddresses } from "../DataModels/DealConfig";
-import Moralis from "moralis";
-
-import moralisConfig from '../moralisConfig.json'
-
-// Moralis
-Moralis.start({ serverUrl: moralisConfig.SERVER_URL, appId: moralisConfig.APP_ID });
+import Moralis from "./MoralisService";
 
 export default class DatabaseService {
-
-    // TODO: should other classes just use this? or should they import Moralis (and start it) themselves?
-    static getMoralis(): Moralis {
-        return Moralis;
-    }
 
     static async getDealFactoryAddress(): Promise<string | undefined> {
         const DeploymentState = Moralis.Object.extend("DeploymentState");
@@ -24,15 +14,16 @@ export default class DatabaseService {
         });
     }
 
-    static async getUser(userAddr: string): Promise<User | undefined> {
-        const userQuery = new Moralis.Query(User);
+    static async getUser(caseSensitiveUserAddr: string): Promise<NetworkUser | undefined> {
+        let userAddr = caseSensitiveUserAddr.toLowerCase();
+        const userQuery = new Moralis.Query(NetworkUser);
         userQuery.equalTo("address", userAddr);
         return await userQuery.first().then(async function(result) {
             if (result === undefined) {
-                const anon = User.anonymous(userAddr);
+                const anon = NetworkUser.anonymous(userAddr);
                 return await anon.save().then(
                     (anon) => { return anon; },
-                    (error) => { console.log("Unable to create user"); return undefined; }
+                    (error) => { console.log("Unable to create user", error); return undefined; }
                 );
             }
             return result;
