@@ -22,6 +22,14 @@ export default class Network {
         return new Network(80001, "Mumbai")
     }
 
+    static ropsten() {
+        return new Network(3, "Ropsten")
+    }
+
+    static polygon() {
+        return new Network(137, "Polygon")
+    }
+
     static localhost() {
         return new Network(1337, "Localhost")
     }

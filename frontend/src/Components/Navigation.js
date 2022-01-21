@@ -21,7 +21,12 @@ function Navigation() {
 
   useEffect(() => {
     if (walletChain && (walletChain != selectedNetworkChainId)) {
-      alert("Change your network to " + selectedNetworkName)
+      toast({
+        title: "Change your network to " + selectedNetworkName,
+        status: "error",
+        isClosable: false,
+        position: "top"
+      })
     }
   }, [walletChain, selectedNetworkChainId])
 

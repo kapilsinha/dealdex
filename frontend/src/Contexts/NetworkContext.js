@@ -2,17 +2,35 @@ import React, { useEffect, useState } from "react";
 import {useLocalStorage} from "./useLocalStorage"
 import Network from "../DataModels/Network";
 import { useMoralis } from "react-moralis";
+import appConfig from "../appConfig.json"
 
 //2.
 export const NetworkContext = React.createContext();
 
 //3.
 export const NetworkProvider = ({ children }) => {
-    const networks = [
-        Network.ethereum(),
-        Network.mumbai(),
-        Network.localhost()
+
+  var networks
+  if (appConfig.currentEnvironment == "dev") {
+    networks = [
+      Network.ethereum(),
+      Network.polygon(),
+      Network.ropsten(),
+      Network.mumbai(),
+      Network.localhost
     ]
+  } else if (appConfig.currentEnvironment == "testnet") {
+    networks = [
+      Network.ropsten(),
+      Network.mumbai(),
+    ]
+  } else if (appConfig.currentEnvironment == "mainnet") {
+    networks = [
+      Network.ethereum(),
+      Network.polygon()
+    ]
+  }
+
 
     const [networkIndex, setNetworkIndex] = useLocalStorage("network", 0);
     const [walletChain, setWalletChain] = useState(null)
