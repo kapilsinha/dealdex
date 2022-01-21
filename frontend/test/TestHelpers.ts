@@ -55,16 +55,14 @@ async function validateDeal(deal, // Contract,
 }
 */
 
-async function createDeal(
-    dealFactory: DealFactory,
+function createDealConfig(
     manager: string,
     project: string,
     projectToken: SimpleToken,
     investmentToken: SimpleToken,
     gateToken: SimpleNFT // test these with types ERC20 and ERC721, skipped for now since it's giving me warnings
-    ): Promise<Deal | undefined>
+    ): DealConfigStruct
 {
-
     let epochSecs = Math.round(new Date().getTime() / 1000);
     let participantAddresses: ParticipantAddressesStruct = {
         dealdex: manager /* gets overwritten */,
@@ -87,7 +85,7 @@ async function createDeal(
         investmentTokenAddress: investmentToken.address,
         gateToken: gateToken.address,
         investmentKeyType: 1 /* gate token */,
-        investmentDeadline: epochSecs + 600,
+        investmentDeadline: epochSecs + 24 * 60 * 60,
     };
     let refundConfig: ClaimRefundConfigStruct = {
         allowRefunds: true,
@@ -118,10 +116,17 @@ async function createDeal(
         fundsConfig: fundsConfig,
         vestingSchedule: vestingSchedule,
     };
-    
+    return config;
+}
+
+async function createDeal(
+    dealFactory: DealFactory,
+    dealConfig: DealConfigStruct
+    ): Promise<Deal | undefined>
+{
     let Deal = await ethers.getContractFactory("Deal");
 
-    const transaction = await dealFactory.createDeal(config);
+    const transaction = await dealFactory.createDeal(dealConfig);
     console.log("Waiting for transaction to complete:", transaction)
 
     const receipt = await transaction.wait()
@@ -136,6 +141,27 @@ async function createDeal(
     }
     console.log("Failed to find DealCreated event");
     return undefined;
+}
+
+async function invest(
+    dealAddr: string,
+    amount: BigNumber,
+    nftId: BigNumber): Promise<string>
+{
+    let Deal = await ethers.getContractFactory("Deal");
+    let deal = Deal.attach(dealAddr);
+    const transaction = await deal.invest(amount, nftId);
+    return transaction;
+}
+
+async function claimRefund(
+    dealAddr: string,
+    nftId: BigNumber): Promise<string>
+{
+    let Deal = await ethers.getContractFactory("Deal");
+    let deal = Deal.attach(dealAddr);
+    const transaction = await deal.claimRefund(nftId);
+    return transaction;
 }
 
 /*
@@ -203,7 +229,10 @@ async function invest(deal, //: Contract,
 
 export default {
     //validateDeal: validateDeal,
+    createDealConfig: createDealConfig,
     createDeal: createDeal,
+    invest: invest,
+    claimRefund: claimRefund,
     // createAndValidateDeal: createAndValidateDeal,
     // sendTokens: sendTokens,
     // claimProceeds: claimProceeds,

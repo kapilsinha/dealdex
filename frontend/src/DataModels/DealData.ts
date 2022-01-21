@@ -1,11 +1,11 @@
-import User from './User';
+import NetworkUser from './User';
 
 
 class Deal {
     name?: string
     dealAddress?: string
-    startup: User
-    investors: User[]
+    startup: NetworkUser
+    investors: NetworkUser[]
     investorAmounts: string[]
     ethPerToken?: string
     startupTokenAddress?: string
@@ -29,8 +29,8 @@ class Deal {
     dealdexAddress?: string
     managerAddress?: string
 
-    constructor(startup: User, 
-                investors: User[], 
+    constructor(startup: NetworkUser, 
+                investors: NetworkUser[], 
                 investorAmounts: string[],
                 vestingStrategy: number,
                 investmentKeyType: number,
@@ -88,7 +88,7 @@ class Deal {
         // PROPORTIONAL, meaning each investor gets x% of her tokens investment,
         // and the investment key type is GATE_TOKEN, meaning that only the 
         // owner of the gate token that the investor owned can withdraw funds
-        return new Deal(User.empty(), [], [], 0, 1)
+        return new Deal(NetworkUser.empty(), [], [], 0, 1)
     }
 }
 
