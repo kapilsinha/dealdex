@@ -33,7 +33,7 @@ export default class DealService {
         let dealFactoryAddress = await DatabaseService.getDealFactoryAddress()
         console.log(user)
         console.log(user.get("address"))
-        console.log(user.getAddress())
+        console.log(SmartContractService.getChecksumAddress(user.get("ethAddress")))
         console.log(dealFactoryAddress)
 
         if (!signer || !dealFactoryAddress) {
@@ -214,11 +214,6 @@ export default class DealService {
         const maxWeiAmount = ethers.utils.parseEther(dealData.maxInvestmentPerInvestor!)
 
         let txn = await SmartContractService.invest(dealData.dealAddress!, signer, weiToInvest)
-        // TODO: This should be handled in the Moralis backend
-        // if (txn.error == null) {
-        //     const address = await signer.getAddress();
-        //     await DatabaseService.recordInvestment(address, dealData.dealAddress!)
-        // }
         return txn;
     }
 
