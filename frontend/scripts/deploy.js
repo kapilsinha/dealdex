@@ -40,7 +40,6 @@ async function main() {
 
   const usdp = await SimpleToken.deploy("USD Pog", "USDP", 10000, 6);
   await usdp.deployed();
-  const accounts = await hre.ethers.getSigners();
   for (const account of accounts) {
       await usdp.transfer(account.address, BigInt(100 * Math.pow(10, 6)));
   }
