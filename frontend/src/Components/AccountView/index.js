@@ -24,7 +24,7 @@ function AccountView(props) {
     async function fetchDeals() {
       try {
         let user = await DatabaseService.getUser("userAddress");
-        let deals = await user.getDealsWhereStartup();
+        let deals = await user.getDealsWhereProject();
 
          // TODO: revisit
         // let startupPendingDeals = await user.getPendingDealsWhereStartup();

@@ -44,18 +44,39 @@ export default class NetworkUser extends Moralis.Object {
 
     async getDealsWhereProject() : Promise<DealMetadata[]> {
         await this.refresh()
-        return this.get("dealsWhereProject")
+        const dealsWhereProject = this.get("dealsWhereProject")
+
+        const result = await Moralis.Object.fetchAllWithInclude(dealsWhereProject, ["manager", "project"])
+
+        return result as DealMetadata[]
     }
 
     // TODO: need to pass in list of NFTs to this function
     async getDealsWhereManager() : Promise<DealMetadata[]> {
         await this.refresh()
-        return this.get("dealsWhereManager")
+
+        const dealsWhereManager = this.get("dealsWhereManager")
+
+        try {
+            const result = await Moralis.Object.fetchAllWithInclude(dealsWhereManager, ["manager", "project"])
+            return result as DealMetadata[]
+        } catch(error) {
+            return []
+        }
+        
     }
 
     async getPendingDealsCreated() : Promise<PendingDeal[]> {
         await this.refresh()
-        return this.get("pendingDealsCreated")
+        const pendingDealsCreated = this.get("pendingDealsCreated")
+
+        try {
+            const result = await Moralis.Object.fetchAllWithInclude(pendingDealsCreated, ["manager", "project"])
+            return result as PendingDeal[]
+        } catch(error) {
+            return []
+        }
+        
     }
 
     async getDealsWhereInvestor() : Promise<DealMetadata[]> {

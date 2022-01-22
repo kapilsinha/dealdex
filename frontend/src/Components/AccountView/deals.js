@@ -46,39 +46,36 @@ const AccountDeals = () => {
     }
     const currUser = await DatabaseService.getUser(user.get("ethAddress"))
 
-    const pendingDealsWhereManager = await currUser.getPendingDealsCreated()
+    const pendingDealsCreated = await currUser.getPendingDealsCreated()
 
     const dealsWhereManager = await currUser.getDealsWhereManager()
+    
 
     var result = []
 
     // 
 
-    // for (const pendingDeal of pendingDealsWhereManager) {
-    //   result.push({
-    //     dealName: pendingDeal.getName(),
-    //     managerName: pendingDeal.getManager().getName(),
-    //     nftAddress: pendingDeal.getNftAddress(),
-    //     paymentToken: pendingDeal.getInvestorPaymentToken(),
-    //     minInvestmentAmount: pendingDeal.getMinInvestmentAmt(),
-    //     deadline: pendingDeal.getInvestmentDeadline()
-    //   })
-    // }
+    for (const pendingDeal of pendingDealsCreated) {
+      result.push({
+        dealName: `${pendingDeal.getName()} (Pending)`,
+        managerName: pendingDeal.getManager().getName(),
+        nftAddress: pendingDeal.getNftAddress(),
+        paymentToken: pendingDeal.getInvestorPaymentToken(),
+        minInvestmentAmount: pendingDeal.getMinInvestmentAmt(),
+        deadline: pendingDeal.getInvestmentDeadline()
+      })
+    }
 
-    // for (const deal of dealsWhereManager) {
-    //   console.log(deal.getName())
-    //   console.log(deal.getManager())
-    //   console.log(deal)
-    //   console.log(await deal.get("name"))
-    //   result.push({
-    //     dealName: deal.getName(),
-    //     managerName: deal.getManager().getName(),
-    //     nftAddress: deal.getNftAddress(),
-    //     paymentToken: deal.getInvestorPaymentToken(),
-    //     minInvestmentAmount: deal.getMinInvestmentAmt(),
-    //     deadline: deal.getInvestmentDeadline()
-    //   })
-    // }
+    for (const deal of dealsWhereManager) {
+      result.push({
+        dealName: deal.getName(),
+        managerName: deal.getManager().getName(),
+        nftAddress: deal.getNftAddress(),
+        paymentToken: deal.getInvestorPaymentToken(),
+        minInvestmentAmount: deal.getMinInvestmentAmt(),
+        deadline: deal.getInvestmentDeadline()
+      })
+    }
 
     setDeals(result)
   }

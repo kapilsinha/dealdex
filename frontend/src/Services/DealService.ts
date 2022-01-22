@@ -133,8 +133,16 @@ export default class DealService {
             console.log("Failed to retrieve all users!", creator, project, manager)
             return { error: "Failed to retrieve user: please check your internet connection" };
         }
-        let pendingDeal = PendingDeal.createPendingDeal(dealName, creator, project, manager, paymentToken.name, dealConfig.investConfig.gateToken, minInvestmentAmt,
-            getUnixTimestamp(dealConfig.investConfig.deadline).toNumber());
+        let pendingDeal = PendingDeal.createPendingDeal(
+            dealName, 
+            creator, 
+            project, 
+            manager, 
+            paymentToken.contractAddress, 
+            dealConfig.investConfig.gateToken, 
+            minInvestmentAmt,
+            getUnixTimestamp(dealConfig.investConfig.deadline).toNumber()
+        );
         await pendingDeal.save();
         creator.add("pendingDealsCreated", pendingDeal);
         await creator.save();
