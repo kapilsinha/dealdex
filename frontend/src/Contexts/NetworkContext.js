@@ -3,6 +3,8 @@ import {useLocalStorage} from "./useLocalStorage"
 import Network from "../DataModels/Network";
 import { useMoralis } from "react-moralis";
 import appConfig from "../appConfig.json"
+import { useChain } from "react-moralis"
+import {useToast } from "@chakra-ui/react";
 
 //2.
 export const NetworkContext = React.createContext();
@@ -17,7 +19,7 @@ export const NetworkProvider = ({ children }) => {
       Network.polygon(),
       Network.ropsten(),
       Network.mumbai(),
-      Network.localhost
+      Network.localhost()
     ]
   } else if (appConfig.currentEnvironment == "testnet") {
     networks = [
@@ -34,6 +36,9 @@ export const NetworkProvider = ({ children }) => {
 
     const [networkIndex, setNetworkIndex] = useLocalStorage("network", 0);
     const [walletChain, setWalletChain] = useState(null)
+    const {switchNetwork, chainId} = useChain()
+    const toast = useToast();
+    const toastIdRef = React.useRef()
 
     const {Moralis, isWeb3Enabled, isWeb3EnableLoading, enableWeb3 } = useMoralis()
 
@@ -42,34 +47,47 @@ export const NetworkProvider = ({ children }) => {
     const selectedNetworkChainId = networks[networkIndex].chainId
     const selectedNetworkName = networks[networkIndex].name
 
-    useEffect(() => {
-      async function setCurrentChainId() {
-        let chainId = await Moralis.getChainId()
-        setWalletChain(chainId)
+    function closeCurrentToast() {
+      if (toastIdRef.current) {
+        toast.close(toastIdRef.current)
       }
+    }
 
+    useEffect(() => {
       if (!isWeb3Enabled && !isWeb3EnableLoading) {
         enableWeb3()
-      } else {
-
-        setCurrentChainId()
-        const unsubscribe = Moralis.onChainChanged((chain) => {
-          setWalletChain(chain)
-        })
-        return unsubscribe
-      }
+      } 
     }, [isWeb3Enabled])
 
     useEffect(() => {
       async function switchWalletNetwork() {
         if (isWeb3Enabled) {
-          Moralis.switchNetwork(selectedNetworkChainId)
+
+          if (selectedNetworkChainId != chainId) {
+            try {
+              switchNetwork(`0x${selectedNetworkChainId.toString(16)}`)
+            } catch(err) {
+              console.log(err)
+            }
+            
+            closeCurrentToast()
+            toastIdRef.current = toast({
+              title: "Change your network to " + selectedNetworkName,
+              status: "error",
+              isClosable: false,
+              position: "top",
+              duration: null
+            })
+          } else {
+            closeCurrentToast()
+          }
+          
         }
       }
       switchWalletNetwork()
-    }, [networkIndex, walletChain, isWeb3Enabled])
+    }, [networkIndex, chainId, isWeb3Enabled])
 
   return (
-    <NetworkContext.Provider value={{ selectedNetworkName, selectedNetworkChainId, allNetworkNames, setNetworkIndex, walletChain }}>{children}</NetworkContext.Provider>
+    <NetworkContext.Provider value={{ selectedNetworkName, selectedNetworkChainId, allNetworkNames, setNetworkIndex, walletChain: chainId }}>{children}</NetworkContext.Provider>
   );
 };

@@ -34,6 +34,7 @@ export default class DatabaseService {
     static async getDealMetadata(dealAddr: string): Promise<DealMetadata | undefined> {
         const dealQuery = new Moralis.Query(DealMetadata);
         dealQuery.equalTo("address", dealAddr);
+        dealQuery.includeAll()
         return await dealQuery.first().then(function(result) {
             return result === undefined ? undefined : result;
         });
@@ -42,6 +43,7 @@ export default class DatabaseService {
     static async getAllDealsMetadata(): Promise<DealMetadata[]> {
         const dealQuery = new Moralis.Query(DealMetadata);
         dealQuery.ascending("name");
+        dealQuery.includeAll()
         return await dealQuery.find()
             .then(function(results) { return results; })
             .catch(function(error) { console.log("Failed to retrieve deals with error: ", error); return []; }

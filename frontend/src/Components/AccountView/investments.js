@@ -8,6 +8,7 @@ import { APP_ID, SERVER_URL } from "../../App";
 import { useMoralis } from "react-moralis";
 import DatabaseService from "../../Services/DatabaseService";
 import { NetworkContext } from "../../Contexts/NetworkContext";
+import NFTCard from "../../ReusableComponents/NFTCard";
 
 const DummyData = [
   {
@@ -75,12 +76,10 @@ const AccountInvestments = ({ userAddress = "" }) => {
   const {selectedNetworkChainId} = useContext(NetworkContext)
 
   useEffect(() => {
-    Moralis.start({ serverUrl: SERVER_URL, appId: APP_ID });
-
-  }, []);
-
-  useEffect(() => {
     async function testnetNFTs() {
+      if (!user) {
+        return
+      }
       try {
         const networkUser = await DatabaseService.getUser(user.get("ethAddress"))
         const result = await networkUser.getInvestments(selectedNetworkChainId)
@@ -99,23 +98,11 @@ const AccountInvestments = ({ userAddress = "" }) => {
         <Box textStyle="investmentMessages" mb={3} mr={2}>
           Your wallet holds the following NFTs:
         </Box>
-        {NFTs.map((nft, nftIndex) => (
-          <Box key={nftIndex} textStyle="investmentMessages">
-            {nft.symbol}
-            {nftIndex !== NFTs.length - 1 && ","}
-          </Box>
-        ))}
       </Flex>
       <Wrap spacing="45px">
-        {dataInvestment.map((item, index) => (
+        {NFTs.map((item, index) => (
           <WrapItem key={index}>
-            <Box layerStyle="dealTableWrap" pb="12px" pt="40px">
-              <Box textStyle="titleInvestment">{item.deal}</Box>
-              <Flex wrap>
-                <Box textStyle="subTitleInvestment">{item.dealStartup}</Box>
-              </Flex>
-              <InvestmentsItems key={index} data={item.investments} />
-            </Box>
+            <NFTCard nftName={item.name} nftSymbol={item.symbol} nftMetadata={item.metadata} />
           </WrapItem>
         ))}
       </Wrap>
@@ -125,47 +112,3 @@ const AccountInvestments = ({ userAddress = "" }) => {
 
 export default AccountInvestments;
 
-const InvestmentsItems = ({ data = [] }) => {
-  const [checkedItem, setCheckedItem] = useState(true);
-
-  return (
-    <>
-      {data.map((item, index) => (
-        <Box my={18} key={index}>
-          <Box my={1} textStyle="titleInvestmentDeal">
-            {item.dealName}
-          </Box>
-          <Table variant="dealTable">
-            <Thead>
-              <Tr>
-                <Th>Created By</Th>
-                <Th>My investment </Th>
-                <Th>Status</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              <Tr>
-                <Td>
-                  <Flex pos="relative">
-                    <Center>{item.dealCreator.name}</Center>
-                    {item.dealCreator.isVerified && (
-                      <Box pos="absolute" layerStyle="checkboxVerifyWrap">
-                        <Checkbox ml={1} isChecked={checkedItem} onChange={(e) => setCheckedItem(true)} />
-                      </Box>
-                    )}
-                  </Flex>
-                </Td>
-                <Td>
-                  <RoundNumbers num={item.myInvestmentAmount} /> <Symbols address={item.address} />
-                </Td>
-                <Td>
-                  <Box color={item.status === "Claimable" ? "green.500" : "gray.700"}>{item.status}</Box>
-                </Td>
-              </Tr>
-            </Tbody>
-          </Table>
-        </Box>
-      ))}
-    </>
-  );
-};

@@ -17,18 +17,7 @@ function Navigation() {
   const toast = useToast();
   const history = useHistory();
 
-  const {selectedNetworkName, selectedNetworkChainId, allNetworkNames, setNetworkIndex, walletChain } = useContext(NetworkContext)
-
-  useEffect(() => {
-    if (walletChain && (walletChain != selectedNetworkChainId)) {
-      toast({
-        title: "Change your network to " + selectedNetworkName,
-        status: "error",
-        isClosable: false,
-        position: "top"
-      })
-    }
-  }, [walletChain, selectedNetworkChainId])
+  const {selectedNetworkName, allNetworkNames, setNetworkIndex } = useContext(NetworkContext)
 
   const onLogin = async () => {
     try {

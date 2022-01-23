@@ -20,19 +20,20 @@ export default function FundraisingDeals() {
   const [deals, setDeals] = useState([])
   const [isLoading, setIsLoading] = useState(true)
 
-  async function fetchDeals() {
-    if (!user) {
-      return
-    }
-    const currUser = await DatabaseService.getUser(user.get("ethAddress"))
-
-    const dealsWhereProject = await currUser.getDealsWhereProject()
-
-    setDeals(dealsWhereProject)
-    setIsLoading(false)
-  }
+  
 
   useEffect(() => {
+    async function fetchDeals() {
+      if (!user) {
+        return
+      }
+      const currUser = await DatabaseService.getUser(user.get("ethAddress"))
+  
+      const dealsWhereProject = await currUser.getDealsWhereProject()
+  
+      setDeals(dealsWhereProject)
+      setIsLoading(false)
+    }
     fetchDeals()
 
   }, [user]);

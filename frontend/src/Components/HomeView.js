@@ -6,6 +6,8 @@ import { Button, VStack, Box, Wrap, WrapItem, Table, Thead, Tbody, Tr, Th, Td, B
 import { ReactComponent as Logo } from "../assets/icon/DealDexLogo.svg";
 import { TimeDeadline, RoundNumbers , Symbols} from '../Utils/ComponentUtils'
 import DealService from "../Services/DealService";
+import DatabaseService from "../Services/DatabaseService"
+import DealCard from "../ReusableComponents/DealCard"
 
 const DummyData = [
   {
@@ -29,20 +31,27 @@ const DummyData = [
 ];
 
 const HomeView = () => {
-  const [deals, setDeals] = useState([]);
-  const history = useHistory();
+
+  const history = useHistory()
+  const [deals, setDeals] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  
+  function onCreateADeal() {
+    history.push("/createDeal")
+  }
 
   useEffect(() => {
-    async function fetchDealsData() {
-      const allDeals = await DealService.fetchAllDeals();
-      setDeals(allDeals);
+    async function fetchDeals() {
+  
+      const allDeals = await DatabaseService.getAllDealsMetadata()
+  
+      setDeals(allDeals)
+      setIsLoading(false)
     }
-    fetchDealsData();
-  }, []);
+    fetchDeals()
 
-  const onCreateADeal = () => {
-    history.push("/createDeal");
-  };
+  }, []);
 
   
 
@@ -66,7 +75,7 @@ const HomeView = () => {
             <Box textStyle="titleSection" pb={25}>
               All Deals
             </Box>
-            <ListDeals data={DummyData} />
+            <ListDeals deals={deals} isLoading={isLoading} />
           </VStack>
         </VStack>
       </Flex>
@@ -76,53 +85,16 @@ const HomeView = () => {
 
 export default HomeView;
 
-const ListDeals = ({ data = [] }) => {
-  const history = useHistory()
-  if (!data.length) return <Box textStyle="titleDeal">No deals created so far</Box>;
-
-  
-  const goToDealDetails = () => {
-    history.push("/dealDetails")
+const ListDeals = ({ deals = [], isLoading = true }) => {
+  if (!deals.length && !isLoading) {
+    return <Box textStyle="titleDeal">No deals so far</Box>;
   }
 
   return (
     <Wrap spacing="45px">
-      {data.map((item, index) => (
+      {deals.map((item, index) => (
         <WrapItem key={index}>
-          <Box layerStyle="dealTableWrap" onClick={goToDealDetails}>
-            <Box textStyle="titleDeal">{item.dealName}</Box>
-            <Flex>
-              <Box textStyle="subTitleDeal">{item.syndicateAddress}</Box>
-              {item.isVerified && (
-                <Box ml={2}>
-                  <Badge variant="verified">VERIFIED</Badge>
-                </Box>
-              )}
-            </Flex>
-
-            <Box mt={25}>
-              <Table variant="dealTable">
-                <Thead>
-                  <Tr>
-                    <Th>Required NFT</Th>
-                    <Th>Min invest</Th>
-                    <Th>Deadline</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  <Tr>
-                    <Td>{item.requiredNFT}</Td>
-                    <Td>
-                      <RoundNumbers num={item.minInvestmentAmount} /> <Symbols  address={item.address}/>
-                    </Td>
-                    <Td>
-                      <TimeDeadline deadline={item.deadline} />
-                    </Td>
-                  </Tr>
-                </Tbody>
-              </Table>
-            </Box>
-          </Box>
+          <DealCard dealMetadata={item}/>
         </WrapItem>
       ))}
     </Wrap>

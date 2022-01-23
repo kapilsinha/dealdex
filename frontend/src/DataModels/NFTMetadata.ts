@@ -5,6 +5,14 @@ export default class NFTMetadata extends Moralis.Object {
         super('NFT')
     }
 
+    getNftId() {
+        return this.get("nftId")
+    }
+
+    getAddress() {
+        return this.get("address")
+    }
+
     static createNFTMetadata(
         address: string, 
         nftId: string
