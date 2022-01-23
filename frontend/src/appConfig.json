@@ -1,4 +1,4 @@
 {
     "environments": ["dev", "testnet", "mainnet"],
-    "currentEnvironment": "dev"
+    "currentEnvironment": "testnet"
 }

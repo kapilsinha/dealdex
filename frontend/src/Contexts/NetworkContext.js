@@ -5,6 +5,7 @@ import { useMoralis } from "react-moralis";
 import appConfig from "../appConfig.json"
 import { useChain } from "react-moralis"
 import {useToast } from "@chakra-ui/react";
+import { useSessionStorage } from "./useSessionStorage";
 
 //2.
 export const NetworkContext = React.createContext();
@@ -34,7 +35,7 @@ export const NetworkProvider = ({ children }) => {
   }
 
 
-    const [networkIndex, setNetworkIndex] = useLocalStorage("network", 0);
+    const [networkIndex, setNetworkIndex] = useSessionStorage("network", 0);
     const [walletChain, setWalletChain] = useState(null)
     const {switchNetwork, chainId} = useChain()
     const toast = useToast();
