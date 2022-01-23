@@ -89,7 +89,7 @@ function DealFormStep5(props) {
         isClosable: true,
         position: "bottom-right"
       })
-      history.push("/account")
+      history.push("/account?defaultTab=1")
 
     }
   }

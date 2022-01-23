@@ -14,6 +14,7 @@ export default class NFTMetadata extends Moralis.Object {
         nftMetadata.set("address", address)
         // id is a reserved keyword in Moralis, don't use it!
         nftMetadata.set("nftId", nftId)
+        nftMetadata.set("address_nftId", `${address}_${nftId}`)
         nftMetadata.set("dealAndInvestments", [])
         return nftMetadata
     }

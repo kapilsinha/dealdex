@@ -71,6 +71,7 @@ export const Symbols = ({ address }) => {
     getTokenMetadata();
   }, [address]);
 
+  console.log(symbol)
   return symbol;
 };
 

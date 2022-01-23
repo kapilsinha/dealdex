@@ -8,6 +8,7 @@ import { ParticipantAddresses } from './DealConfig';
 import DealMetadata from './DealMetadata';
 import SmartContractService from '../Services/SmartContractService';
 import Moralis from "../Services/MoralisService";
+import NFTMetadata from "./NFTMetadata"
 
 // Moralis.User is garbage that only the actual user can access...
 export default class NetworkUser extends Moralis.Object {
@@ -19,6 +20,13 @@ export default class NetworkUser extends Moralis.Object {
         return this.get("name")
     }
 
+    getVerifiedStatus(): boolean {
+        return Boolean(this.get("isVerified"))
+    }
+
+    getAddress(): string {
+        return this.get("address")
+    }
     static createUser(
         address: string, 
         username: string
@@ -35,11 +43,18 @@ export default class NetworkUser extends Moralis.Object {
         // Excluding the below since all investments will be NFT-associated for now
         // user.set("dealAndInvestments", [])
         user.set("pendingDealsCreated", [])
+        user.set("isVerified", false)
         return user
     }
 
     async refresh() {
         await this.fetch();
+    }
+
+    async updateName(newName: string) {
+        this.set("name", newName)
+        await this.save()
+        await this.refresh()
     }
 
     async getDealsWhereProject() : Promise<DealMetadata[]> {
@@ -79,10 +94,28 @@ export default class NetworkUser extends Moralis.Object {
         
     }
 
-    async getDealsWhereInvestor() : Promise<DealMetadata[]> {
-        // TODO: Loop over NFTs and use NFTMetadata
-        // @Ayan?
-        return []
+    async getInvestments(chainId: number) : Promise<{name: any; symbol: any; metadata: NFTMetadata}[]> {
+        const options = { chain: "testnet", address: this.getAddress() };
+        // @ts-ignore
+        const result = await Moralis.Web3API.account.getNFTs(options)
+        if (!result.result) {
+            return []
+        } 
+        const primaryKeyToMetadata = result.result.reduce(function(map, obj) {
+            const primaryKey = `${obj.token_address}_${obj.token_id}`
+            map.set(primaryKey, obj)
+            return map
+        }, new Map<string, any>())
+        const primaryKeys = Array.from(primaryKeyToMetadata.keys())
+        const query = new Moralis.Query(NFTMetadata)
+        query.containedIn("address_nftId", primaryKeys)
+
+        const nfts = await query.find()
+        const nftMetadata = nfts.map(val => {
+            const obj = primaryKeyToMetadata.get(val.get("address_nftId"))
+            return {name: obj.name, symbol: obj.symbol, metadata: val}
+        })
+        return nftMetadata
     }
 
     static empty(address?: string) {

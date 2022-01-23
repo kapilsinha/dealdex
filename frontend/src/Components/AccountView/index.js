@@ -2,46 +2,51 @@ import React, { useState, useEffect } from "react";
 import { Flex, Container, Box, ButtonGroup, Button, HStack, VStack, Tabs, TabList, TabPanels, Tab, TabPanel, Input, FormControl, IconButton } from "@chakra-ui/react";
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 
-import AccountInvestments from "./investments";
-import AccountDeals from "./deals";
-import AccountProjects from "./projects"
+import AccountInvestments from "./Investments";
+import DealsUnderManagement from "./DealsUnderManagement";
+import FundraisingDeals from "./FundraisingDeals"
 
 import DatabaseService from "../../Services/DatabaseService";
 
 import { ConvertAddress } from "../../Utils/ComponentUtils";
 
+import { useMoralis } from "react-moralis";
+import { useHistory, useLocation } from "react-router-dom"
+
+
 function AccountView(props) {
-  const [dealsWhereStartup, setDealsWhereStartup] = useState([]);
-  const [dealsWhereInvestor, setDealsWhereInvestor] = useState([]);
-  const [pendingDealsWhereStartup, setPendingDealsWhereStartup] = useState([]);
-  const [pendingDealsWhereInvestor, setPendingDealsWhereInvestor] = useState([]);
-  const [username, setUsername] = useState("");
   const [isEditUsername, setIsEditUsername] = useState(false);
-  // https://stackoverflow.com/questions/10970078/modifying-a-query-string-without-reloading-the-page
-  // Use this to update the url
+  const [networkUser, setNetworkUser] = useState(undefined)
+  const {user} = useMoralis()
+
+  const search = useLocation().search
+  var defaultTab = 0
+  try {
+    var defaultTabQueryParam = new URLSearchParams(search).get('defaultTab')
+    var defaultTabQueryParam = Number(defaultTabQueryParam)
+    if ([0,1,2].includes(defaultTabQueryParam)) {
+      defaultTab = defaultTabQueryParam
+    }
+  } catch(error) {
+
+  }
+    
 
   useEffect(() => {
     async function fetchDeals() {
-      try {
-        let user = await DatabaseService.getUser("userAddress");
-        let deals = await user.getDealsWhereProject();
+      if (!user) {
+        return
+      }
 
-         // TODO: revisit
-        // let startupPendingDeals = await user.getPendingDealsWhereStartup();
-        // let investorPendingDeals = await user.getPendingDealsWhereInvestor();
-        let investments = await user.getDealsWhereInvestor();
-        let name = user.name;
-        setDealsWhereStartup(deals);
-        // setPendingDealsWhereInvestor(investorPendingDeals);
-        // setPendingDealsWhereStartup(startupPendingDeals);
-        setDealsWhereInvestor(investments);
-        setUsername(name);
+      try {
+        let networkUser = await DatabaseService.getUser(user.get("ethAddress"));
+        setNetworkUser(networkUser)
       } catch (err) {
         console.log(err);
       }
     }
     fetchDeals();
-  }, []);
+  }, [user]);
 
   return (
     <Container maxW="container.xl" p={0}>
@@ -50,37 +55,39 @@ function AccountView(props) {
           <Box>
             <HStack spacing="10px" alignItems="center">
               {isEditUsername ? (
-                <EditUserInput username={username} setUsername={setUsername} setIsEditUsername={setIsEditUsername} />
+                <EditUserInput networkUser={networkUser} setNetworkUser={setNetworkUser} setIsEditUsername={setIsEditUsername} />
               ) : (
                 <>
-                  <Box textStyle="account">{username}</Box>
-                  <Button variant="accountEdit" onClick={() => setIsEditUsername(true)}>
-                    Edit
-                  </Button>
+                  <Box textStyle="account">{networkUser ? networkUser.getName(): ""}</Box>
+                  {(networkUser !== undefined) &&
+                    <Button variant="accountEdit" onClick={() => setIsEditUsername(true)}>
+                      Edit
+                    </Button>
+                  }
                 </>
               )}
             </HStack>
             <Box textAlign="left" textStyle="addressWallet">
-              <ConvertAddress address={"userAddress"} />
+              <ConvertAddress address={networkUser ? networkUser.getAddress(): ""} />
             </Box>
           </Box>
 
           <Box>
-            <Tabs mt={50} variant="dealAccountTab">
+            <Tabs mt={50} defaultIndex={defaultTab}>
               <TabList>
-                <Tab>Investments</Tab>
-                <Tab ml={20}>Deals</Tab>
-                <Tab ml={20}>Projects</Tab>
+                <Tab>My investments</Tab>
+                <Tab ml={20}>Deals under management</Tab>
+                <Tab ml={20}>My fundraising</Tab>
               </TabList>
               <TabPanels>
-                <TabPanel>
+                <TabPanel px={0}>
                   <AccountInvestments userAddress={"userAddress"} />
                 </TabPanel>
-                <TabPanel>
-                  <AccountDeals />
+                <TabPanel px={0}>
+                  <DealsUnderManagement />
                 </TabPanel>
-                <TabPanel>
-                  <AccountProjects />
+                <TabPanel px={0}>
+                  <FundraisingDeals />
                 </TabPanel>
               </TabPanels>
             </Tabs>
@@ -94,15 +101,24 @@ function AccountView(props) {
 export default AccountView;
 
 const EditUserInput = (props) => {
-  const [input, setInput] = useState(props.username);
+  const networkUser = props.networkUser
+
+  const [input, setInput] = useState(networkUser.getName());
 
   const handleInputChange = (e) => setInput(e.target.value);
 
+  
+
+  const [isLoading, setIsLoading] = useState(false)
   const isError = input === "";
 
-  const onSaveUserNanme = () => {
+  async function onSaveUserNanme() {
     if (!input) return;
-    props.setUsername(input);
+
+    setIsLoading(true)
+    await networkUser.updateName(input)
+    setIsLoading(false)
+    props.setNetworkUser(networkUser);
     props.setIsEditUsername(false);
   };
 
@@ -111,7 +127,7 @@ const EditUserInput = (props) => {
       <Flex>
         <Input id="userName" placeholder="Edit User Name" size="md" value={input} onChange={handleInputChange} />
         <ButtonGroup ml={2} alignItems="center" justifyContent="center" size="md">
-          <IconButton onClick={onSaveUserNanme} variant="saveUserName" icon={<CheckIcon />} />
+          <IconButton onClick={onSaveUserNanme} isLoading={isLoading} variant="saveUserName" icon={<CheckIcon />} />
           <IconButton
             icon={<CloseIcon />}
             onClick={() => {

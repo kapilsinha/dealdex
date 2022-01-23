@@ -7,6 +7,10 @@ export default class PendingDeal extends Moralis.Object {
         super('PendingDeal')
     }
 
+    isPending(): boolean {
+        return true
+    }
+
     getName() {
         return this.get("name")
     }

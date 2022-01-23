@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useContext } from "react";
 
 import { Flex, Box, VStack, Wrap, WrapItem, Table, Thead, Tbody, Tr, Th, Td, Checkbox, Center } from "@chakra-ui/react";
 
@@ -6,6 +6,8 @@ import { RoundNumbers, Symbols } from "../../Utils/ComponentUtils";
 
 import { APP_ID, SERVER_URL } from "../../App";
 import { useMoralis } from "react-moralis";
+import DatabaseService from "../../Services/DatabaseService";
+import { NetworkContext } from "../../Contexts/NetworkContext";
 
 const DummyData = [
   {
@@ -68,24 +70,28 @@ const AccountInvestments = ({ userAddress = "" }) => {
 
   const dataInvestment = useMemo(() => DummyData, []);
 
-  const { Moralis } = useMoralis();
+  const { Moralis, user } = useMoralis();
+
+  const {selectedNetworkChainId} = useContext(NetworkContext)
 
   useEffect(() => {
     Moralis.start({ serverUrl: SERVER_URL, appId: APP_ID });
+
   }, []);
 
   useEffect(() => {
     async function testnetNFTs() {
       try {
-        const options = { chain: "testnet", address: userAddress };
-        const { result = [] } = await Moralis.Web3API.account.getNFTs(options);
+        const networkUser = await DatabaseService.getUser(user.get("ethAddress"))
+        const result = await networkUser.getInvestments(selectedNetworkChainId)
+        console.log(result)
         setNFTs(result);
       } catch (err) {
         console.log(err);
       }
     }
     testnetNFTs();
-  }, [userAddress]);
+  }, [user]);
 
   return (
     <VStack w="full" h="full" p={0} alignItems="flex-start">

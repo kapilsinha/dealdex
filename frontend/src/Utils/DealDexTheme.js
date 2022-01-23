@@ -318,20 +318,20 @@ const DealDexTheme = extendTheme({
     Tabs: {
       variants: {
         dealAccountTab: {
-          tab: {
-            background: "white",
-            borderRadius: "9999px",
-            width: "auto",
-            height: "40px",
-            fontSize: "16px",
-            fontWeight: "600",
-            lineHeight: "124%",
-            color: "gray.600",
-            _selected: {
-              background: "iris.100",
-              color: "white",
-            },
-          },
+          // tab: {
+          //   background: "white",
+          //   borderRadius: "9999px",
+          //   width: "auto",
+          //   height: "40px",
+          //   fontSize: "16px",
+          //   fontWeight: "600",
+          //   lineHeight: "124%",
+          //   color: "gray.600",
+          //   _selected: {
+          //     background: "iris.100",
+          //     color: "white",
+          //   },
+          // },
           tabpanel: {
             py: "30px",
             px: 0,

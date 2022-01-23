@@ -27,6 +27,7 @@ Moralis.Cloud.afterSave("InvestUpdateSync_<dealAddress>", async (request) => {
             const newNft = new NFT();
             newNft.set("address", nftAddress);
 			newNft.set("nftId", nftId);
+			newNft.set("address_nftId", nftAddress + "_" + nftId);
 			newNft.set("dealAndInvestments", []);
             return await newNft.save().then(
                 (newNft) => { return newNft; },

@@ -7,6 +7,10 @@ export default class DealMetadata extends Moralis.Object {
         super('Deal')
     }
 
+    isPending(): boolean {
+        return false
+    }
+
     getName(): string {
         return this.get("name")
     }
@@ -36,7 +40,7 @@ export default class DealMetadata extends Moralis.Object {
     }
 
     getAddress(): string {
-        return this.get("investmentDeadline")
+        return this.get("address")
     }
 
     // TODO: I imagine this is created in the backend and so this can be removed
