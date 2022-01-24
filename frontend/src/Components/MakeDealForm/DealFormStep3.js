@@ -85,7 +85,7 @@ function DealFormStep3(props) {
 
     function vestingScheduleIsValid() {
         if (vestingSchedule.length == 0) {
-            return true
+            return false
         } else {
             let lastElement = vestingSchedule[vestingSchedule.length - 1]
             return lastElement.percent == 100
@@ -197,11 +197,11 @@ function DealFormStep3(props) {
                         width="50%"
                         dateformat = {true}
                         DatePicker={DatePicker}
-                        helperText = {`Date that tokens will invest (${Intl.DateTimeFormat().resolvedOptions().timeZone} time)`}
+                        helperText = {`Date that tokens will vest (${Intl.DateTimeFormat().resolvedOptions().timeZone} time)`}
                     />
 
                     <MakeDealFormNumberItem 
-                        title="Vest Percentage"
+                        title="Cumulative Vest Percentage"
                         colSpan={2}
                         onChange = {value => setVestPercent(value)}
                         placeholder = "0.0"
@@ -210,7 +210,7 @@ function DealFormStep3(props) {
                         maxvalue={100}
                         appendChar = {"%"}
                         precision = {2} // We are using Bps for percentages
-                        helperText = "Percentage of tokens that will vest on the selected date"
+                        helperText = "Cumulative percentage of tokens that will vest on the selected date. Last date must have 100% vested"
                     />
                 </HStack>
                 <HStack w="30%" h="full" pt={10} spacing={10} alignItems="flex-start" display="block">   
