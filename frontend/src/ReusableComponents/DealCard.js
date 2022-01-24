@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useContext, useState } from "react";
-
 import { Flex, Box, VStack, Wrap, WrapItem, Table, Thead, Tbody, Tr, Th, Td, Badge } from "@chakra-ui/react";
-
 import { TimeDeadline, RoundNumbers, Symbols, NFTName } from "../Utils/ComponentUtils";
+import {useHistory} from "react-router-dom"
+
 
 
 export default function DealCard(props) {
@@ -18,10 +18,17 @@ export default function DealCard(props) {
     const minInvestmentAmount = dealMetadata.getMinInvestmentAmt()
     const paymentTokenAddress = dealMetadata.getInvestorPaymentToken()
     const deadline = dealMetadata.getInvestmentDeadline()
+    const dealAddress = dealMetadata.getAddress()
+
+    const history = useHistory()
+
+    function clickHandler() {
+        history.push(`/dealDetails?address=${dealAddress}`)
+    }
     
 
     return (
-        <Box layerStyle="dealTableWrap">
+        <Box layerStyle="dealTableWrap" onClick={clickHandler} cursor="pointer">
             <Box textStyle="titleDeal">{dealName}</Box>
             <Flex>
                 <Box textStyle="subTitleDeal">{managerName}</Box>

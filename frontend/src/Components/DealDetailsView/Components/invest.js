@@ -3,6 +3,7 @@ import {MakeDealFormNumberItem} from '../index'
 import { useEffect, useState } from 'react';
 import { useMoralis } from "react-moralis";
 import {APP_ID, SERVER_URL} from "../../../App";
+import DealDexNumberForm from "../../../ReusableComponents/DealDexNumberForm"
 
 function Invest(props) {
     const { Moralis, } = useMoralis();
@@ -42,23 +43,19 @@ function Invest(props) {
                     }
                 </Select>
             </VStack>
-            <VStack>
-                <VStack spacing={1} w="full" alignItems="flex-start">
-                    <Heading size="sm" py="3px" w="full" textAlign="left">Amount</Heading>
-                </VStack>
-                <MakeDealFormNumberItem 
-                    colSpan={2}
-                    onChange = {value => props.setDealData({ ...props.dealData, vestPercent: value})}
-                    placeholder = "0.0"
-                    value = {props.dealData.vestPercent ? props.dealData.vestPercent : '0.0'}
-                    maxvalue={100}
-                    parsing = {true}
-                    appendChar = {props.dealData.nftunit}
-                />
-            </VStack>
+            <DealDexNumberForm 
+                title="Amount to invest"
+                colSpan={2}
+                onChange = {value => console.log(value)}
+                value = {0}
+                width="100%"
+                appendChar = {"USDC"}
+                isRequired = {false}
+                disabled = {false}
+            />
             <HStack pb={3}>
                 <Heading size="sm" py="3px" w="full" textAlign="left">Expected tokens:</Heading>
-                <Heading size="sm" py="3px" w="full" textAlign="right">{props.expectedTokens}</Heading>
+                <Heading size="sm" py="3px" w="full" textAlign="right">{"0"}</Heading>
             </HStack>
         </Container>
     )
