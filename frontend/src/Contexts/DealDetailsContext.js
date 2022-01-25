@@ -23,7 +23,8 @@ export const DealDetailsProvider = ({ children }) => {
 
     const [state, setState] = useState({
         dealMetadata: undefined,
-        dealConfig: undefined
+        dealConfig: undefined,
+        nftMetadata: undefined
     })
 
     useEffect(() => {
@@ -38,7 +39,12 @@ export const DealDetailsProvider = ({ children }) => {
             const dealConfig = await DealConfig.fromSmartContractStruct(dealConfigStruct, selectedNetworkChainId)
             console.log(dealConfig)
 
-            setState({dealMetadata, dealConfig})
+            var nftMetadata = undefined
+            if(dealConfig) {
+                nftMetadata = await SmartContractService.getNFTMetadata(dealConfig.investConfig.gateToken, selectedNetworkChainId)
+            }
+
+            setState({dealMetadata, dealConfig, nftMetadata})
         }
         fetchDeal()
 
