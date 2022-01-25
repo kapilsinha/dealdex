@@ -106,7 +106,8 @@ export default class SmartContractService {
     }
 
     /* Read the blockchain */
-    static async fetchDealConfig(dealAddress: string, provider: providers.Provider) {
+    static async fetchDealConfig(dealAddress: string, chainId: number) {
+        const provider = await getProviderForChainId(chainId)
         const contract = new ethers.Contract(dealAddress, Deal.abi, provider)
         const result = await contract.config()
         return result
@@ -140,6 +141,7 @@ export default class SmartContractService {
 
     static async getERC20Metadata(erc20TokenAddress: string, chainId: number) {
         if (erc20TokenAddress === ethers.constants.AddressZero) {
+            console.log("token address is AddressZero")
             return undefined
         } 
 
@@ -152,6 +154,7 @@ export default class SmartContractService {
             const decimals = (await tokenContract.decimals()) as number
             return {name, symbol, decimals}
         } catch(err) {
+            console.log(err)
             return undefined
         }
     }

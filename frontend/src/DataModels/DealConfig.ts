@@ -39,6 +39,37 @@ class DealConfig {
         ]
     }
 
+    static async fromSmartContractStruct(dealConfigStruct: any, chainId: number) {
+        const participantAddresses = ParticipantAddresses.fromSmartContractStruct(dealConfigStruct.participantAddresses)
+        console.log(participantAddresses)
+        const exchangeRate = await ExchangeRate.fromSmartContractStruct(
+            dealConfigStruct.exchangeRate, 
+            dealConfigStruct.investConfig,
+            dealConfigStruct.tokensConfig,
+            chainId
+        )
+
+        if (!exchangeRate) {
+            return undefined
+        }
+
+        const investConfig = InvestConfig.fromSmartContractStruct(dealConfigStruct.investConfig)
+        const refundConfig = RefundConfig.fromSmartContractStruct(dealConfigStruct.refundConfig)
+        const claimTokensConfig = ClaimTokensConfig.fromSmartContractStruct(dealConfigStruct.tokensConfig)
+        const claimFundsConfig = ClaimFundsConfig.fromSmartContractStruct(dealConfigStruct.fundsConfig)
+        const vestingSchedule = VestingSchedule.fromSmartContractStruct(dealConfigStruct.vestingSchedule)
+
+        return new DealConfig(
+            participantAddresses,
+            exchangeRate,
+            investConfig,
+            refundConfig,
+            claimTokensConfig,
+            claimFundsConfig,
+            vestingSchedule
+        )
+    }
+
 }
 
 class ParticipantAddresses {
@@ -54,6 +85,14 @@ class ParticipantAddresses {
 
     toSmartContractInput() {
         return [this.dealDexAddress, this.managerAddress, this.projectAddress];
+    }
+
+    static fromSmartContractStruct(participantAddressesStruct: any) {
+        return new ParticipantAddresses(
+            participantAddressesStruct.dealdex, 
+            participantAddressesStruct.manager,
+            participantAddressesStruct.project
+        )
     }
 }
 
@@ -81,7 +120,10 @@ class DealToken {
     // Static factory methods
 
     static async fromContractAddress(contractAddress: string, chainId: number) {
+        console.log(contractAddress)
+        console.log(chainId)
         const tokenMetadata = await SmartContractService.getERC20Metadata(contractAddress, chainId)
+        console.log(tokenMetadata)
 
         if (tokenMetadata) {
             return new DealToken(
@@ -168,6 +210,30 @@ class ExchangeRate {
     toSmartContractInput() {
         return [this.projectTokenBits, this.paymentTokenBits]
     }
+
+    static async fromSmartContractStruct(exchangeRateStruct: any, investConfigStruct: any, tokensConfigStruct: any, chainId: number) {
+        console.log(chainId)
+        const paymentToken = await DealToken.fromContractAddress(investConfigStruct.investmentTokenAddress, chainId)
+        const projectToken = await DealToken.fromContractAddress(tokensConfigStruct.projectTokenAddress, chainId)
+
+        console.log(paymentToken)
+        console.log(projectToken)
+
+        if (!paymentToken) {
+            return undefined
+        }
+        if (!projectToken && tokensConfigStruct.projectTokenAddress != ethers.constants.AddressZero) {
+            return undefined
+        }
+
+        return ExchangeRate.fromTokenBitFraction(
+            exchangeRateStruct.denominator,
+            paymentToken,
+            exchangeRateStruct.numerator,
+            projectToken
+        )
+    }
+
 }
 
 class InvestConfig {
@@ -217,6 +283,21 @@ class InvestConfig {
             deadlineUnixTimestamp
         ];
     }
+
+    static fromSmartContractStruct(investConfigStruct: any) {
+        const deadlineUnixTimestamp = investConfigStruct.investmentDeadline.toNumber()
+        return new InvestConfig(
+            investConfigStruct.sizeConstraints.minInvestmentPerInvestor,
+            investConfigStruct.sizeConstraints.maxInvestmentPerInvestor,
+            investConfigStruct.sizeConstraints.minTotalInvestment,
+            investConfigStruct.sizeConstraints.maxTotalInvestment,
+            investConfigStruct.gateToken,
+            getDateFromUnixTimestamp(deadlineUnixTimestamp),
+            investConfigStruct.investmentTokenAddress,
+            investConfigStruct.investmentKeyType
+
+        )
+    }
 }
 
 class RefundConfig {
@@ -228,6 +309,10 @@ class RefundConfig {
 
     toSmartContractInput() {
         return [/* allowRefunds */ this.allowRefunds, /* lockConstraint = REQUIRE_UNLOCKED */ 2];
+    }
+
+    static fromSmartContractStruct(refundConfigStruct: any) {
+        return new RefundConfig(refundConfigStruct.allowRefunds)
     }
 }
 
@@ -248,6 +333,14 @@ class ClaimTokensConfig {
         const managerFeeInput = this.managerFeeBps || 0
         return [startupTokenAddressInput, dealDexFeeInput, managerFeeInput, /* lockConstraint = REQUIRE_LOCKED */ 1]
     }
+
+    static fromSmartContractStruct(tokensConfigStruct: any) {
+        return new ClaimTokensConfig(
+            tokensConfigStruct.dealdexFeeBps,
+            tokensConfigStruct.projectTokenAddress,
+            tokensConfigStruct.managerFeeBps
+        )
+    }
 }
 
 class ClaimFundsConfig {
@@ -263,6 +356,13 @@ class ClaimFundsConfig {
         const dealdexFeeInput = this.dealdexFeeBps || 0
         const managerFeeInput = this.managerFeeBps || 0
         return [this.dealdexFeeBps, this.managerFeeBps, /* lockConstraint = REQUIRE_LOCKED */ 1];
+    }
+
+    static fromSmartContractStruct(fundsConfigStruct: any) {
+        return new ClaimFundsConfig(
+            fundsConfigStruct.dealdexFeeBps,
+            fundsConfigStruct.managerFeeBps
+        )
     }
 }
 
@@ -281,6 +381,17 @@ class VestingSchedule {
         const vestingTimestamps = this.vestingDates.map(getUnixTimestamp)
         return [this.vestingStrategy, this.vestingBps, vestingTimestamps];
     }
+
+    static fromSmartContractStruct(vestingScheduleStruct: any) {
+        const vestingDates = vestingScheduleStruct.vestingTimestamps.map((timestamp: any) => {
+            return getDateFromUnixTimestamp(timestamp.toNumber())
+        })
+        return new VestingSchedule(
+            vestingScheduleStruct.vestingStrategy,
+            vestingScheduleStruct.vestingBps,
+            vestingDates
+        )
+    }
 }
 
 // Helpers
@@ -291,6 +402,10 @@ function getUnixTimestamp(date: Date) {
     ).toString()
 
     return BigNumber.from(stringTimestamp)
+}
+
+function getDateFromUnixTimestamp(timestamp: number) {
+    return new Date(timestamp * 1000)
 }
 
 export {DealConfig, ParticipantAddresses, ExchangeRate, InvestConfig, RefundConfig, ClaimTokensConfig, ClaimFundsConfig, VestingSchedule, DealToken, getUnixTimestamp}

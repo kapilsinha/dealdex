@@ -155,78 +155,78 @@ export default class DealService {
         await pendingDeal.destroy();
     }
 
-    static async fetchDeal(provider: providers.Provider, dealAddress: string) {
-        const config = await SmartContractService.fetchDealConfig(dealAddress, provider)
-        console.log("Deal config:", config)
-        const startupAddress = config.participantAddresses.startup
+    static async fetchDeal(dealAddress: string, chainId: number) {
+        // const config = await SmartContractService.fetchDealConfig(dealAddress, chainId)
+        // console.log("Deal config:", config)
+        // const startupAddress = config.participantAddresses.startup
 
-        // [ [investors], [amounts] ]
-        const investment = await SmartContractService.fetchSubscribedInvestors(dealAddress, provider)
-        const investorAddresses = investment[0]
-        const investorAmounts = investment[1]
-        console.log(investorAddresses)
+        // // [ [investors], [amounts] ]
+        // const investment = await SmartContractService.fetchSubscribedInvestors(dealAddress, chainId)
+        // const investorAddresses = investment[0]
+        // const investorAmounts = investment[1]
+        // console.log(investorAddresses)
 
-        // All numbers are of type BigNumber
-        const tickSize = config.tickDetails.tickSize
-        const tickValue = config.tickDetails.tickValue
+        // // All numbers are of type BigNumber
+        // const tickSize = config.tickDetails.tickSize
+        // const tickValue = config.tickDetails.tickValue
 
-        const startupTokenAddress = config.claimTokensConfig.startupTokenAddress
+        // const startupTokenAddress = config.claimTokensConfig.startupTokenAddress
 
-        const gateToken = config.investConfig.gateToken
+        // const gateToken = config.investConfig.gateToken
 
-        const ethPerToken = await getEthPerTokenInContract(startupTokenAddress, tickSize, tickValue, provider)
-        const tokensInContract = await getTokensInContract(
-            startupTokenAddress,
-            dealAddress,
-            provider
-        )
+        // const ethPerToken = await getEthPerTokenInContract(startupTokenAddress, tickSize, tickValue, chainId)
+        // const tokensInContract = await getTokensInContract(
+        //     startupTokenAddress,
+        //     dealAddress,
+        //     provider
+        // )
 
-        const weiInContract = await SmartContractService.getWeiBalance(dealAddress, provider)
-        const ethInContract = ethers.utils.formatEther(weiInContract)
+        // const weiInContract = await SmartContractService.getWeiBalance(dealAddress, chainId)
+        // const ethInContract = ethers.utils.formatEther(weiInContract)
 
-        var minInvestmentPerInvestor = config.investConfig.sizeConstraints.minInvestmentPerInvestor
-        minInvestmentPerInvestor = ethers.utils.formatEther(minInvestmentPerInvestor)
-        var maxInvestmentPerInvestor = config.investConfig.sizeConstraints.maxInvestmentPerInvestor
-        maxInvestmentPerInvestor = ethers.utils.formatEther(maxInvestmentPerInvestor)
+        // var minInvestmentPerInvestor = config.investConfig.sizeConstraints.minInvestmentPerInvestor
+        // minInvestmentPerInvestor = ethers.utils.formatEther(minInvestmentPerInvestor)
+        // var maxInvestmentPerInvestor = config.investConfig.sizeConstraints.maxInvestmentPerInvestor
+        // maxInvestmentPerInvestor = ethers.utils.formatEther(maxInvestmentPerInvestor)
 
-        var minTotalInvestment = config.investConfig.sizeConstraints.minTotalInvestment
-        minTotalInvestment = ethers.utils.formatEther(minTotalInvestment)
-        var maxTotalInvestment = config.investConfig.sizeConstraints.maxTotalInvestment
-        maxTotalInvestment = ethers.utils.formatEther(maxTotalInvestment)
+        // var minTotalInvestment = config.investConfig.sizeConstraints.minTotalInvestment
+        // minTotalInvestment = ethers.utils.formatEther(minTotalInvestment)
+        // var maxTotalInvestment = config.investConfig.sizeConstraints.maxTotalInvestment
+        // maxTotalInvestment = ethers.utils.formatEther(maxTotalInvestment)
 
-        var investmentDeadline = config.investConfig.investmentDeadline
-        investmentDeadline = new Date(investmentDeadline.toNumber() * 1000) // Seconds -> Milliseconds
+        // var investmentDeadline = config.investConfig.investmentDeadline
+        // investmentDeadline = new Date(investmentDeadline.toNumber() * 1000) // Seconds -> Milliseconds
 
-        var vestingStrategy = config.vestingSchedule.vestingStrategy
-        var investmentKeyType = config.investmentKeyType
+        // var vestingStrategy = config.vestingSchedule.vestingStrategy
+        // var investmentKeyType = config.investmentKeyType
 
-        let project = await DatabaseService.getUser(startupAddress) || NetworkUser.empty(startupAddress)
-        let investors = investorAddresses.map(async function(investorAddress: string, index: Number){
-            return await DatabaseService.getUser(investorAddress) || NetworkUser.empty(investorAddress)
-        })
-        let dealMetadata = await DatabaseService.getDealMetadata(dealAddress)
+        // let project = await DatabaseService.getUser(startupAddress) || NetworkUser.empty(startupAddress)
+        // let investors = investorAddresses.map(async function(investorAddress: string, index: Number){
+        //     return await DatabaseService.getUser(investorAddress) || NetworkUser.empty(investorAddress)
+        // })
+        // let dealMetadata = await DatabaseService.getDealMetadata(dealAddress)
         
-        const deal = new Deal(
-            project,
-            investors,
-            investorAmounts,
-            vestingStrategy,
-            investmentKeyType,
-            dealMetadata?.get("name"),
-            dealAddress,
-            ethPerToken,
-            getValidatedAddress(startupTokenAddress),
-            minInvestmentPerInvestor,
-            maxInvestmentPerInvestor,
-            minTotalInvestment,
-            maxTotalInvestment,
-            investmentDeadline,
-            tokensInContract,
-            ethInContract,
-            getValidatedAddress(gateToken)
-        )
+        // const deal = new Deal(
+        //     project,
+        //     investors,
+        //     investorAmounts,
+        //     vestingStrategy,
+        //     investmentKeyType,
+        //     dealMetadata?.get("name"),
+        //     dealAddress,
+        //     ethPerToken,
+        //     getValidatedAddress(startupTokenAddress),
+        //     minInvestmentPerInvestor,
+        //     maxInvestmentPerInvestor,
+        //     minTotalInvestment,
+        //     maxTotalInvestment,
+        //     investmentDeadline,
+        //     tokensInContract,
+        //     ethInContract,
+        //     getValidatedAddress(gateToken)
+        // )
 
-        return deal
+        // return deal
     }
 
     static async fetchAllDeals(): Promise<DealMetadata[]> {

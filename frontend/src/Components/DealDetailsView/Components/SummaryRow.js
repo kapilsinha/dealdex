@@ -1,11 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Button, Container, Flex, FormControl, FormLabel, Heading, Table, Tbody, Td, Text, Th, Thead, Tr, VStack, Box, HStack, Badge, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, InputLeftElement, FormHelperText, Tabs, TabList, TabPanels, Tab, TabPanel, Select } from "@chakra-ui/react";
 import {useLocation, useHistory} from 'react-router-dom'
 
 import { ReactComponent as IconArrowRightUpLine } from "../../../assets/icon/ArrowRightUpLine.svg";
+import {DealDetailsContext} from "../../../Contexts/DealDetailsContext"
 
 
 export default function SummaryRow(props) {
+
+    const {dealMetadata, dealConfig} = useContext(DealDetailsContext)  
 
     return(
         <HStack w="full" py="20px" spacing={5}>
