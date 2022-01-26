@@ -6,6 +6,8 @@ import DealDexNumberForm from "../../../ReusableComponents/DealDexNumberForm"
 import MyInvestment from "./my-investment"
 import Invest from "./invest"
 
+
+
 export default function InvestCard(props) {
     const [investAmt, setInvestAmt] = useState("")
 
@@ -20,11 +22,6 @@ export default function InvestCard(props) {
                 <TabPanels>
                     <TabPanel>
                         <Invest />
-                        <Center>
-                            <Button variant="dealDetailTable" onClick={() => console.log("hello")}>
-                                Invest
-                            </Button>
-                        </Center>
                     </TabPanel>
                     <TabPanel>
                         <MyInvestment />

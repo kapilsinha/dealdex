@@ -233,15 +233,15 @@ export default class DealService {
         return await DatabaseService.getAllDealsMetadata()
     }
 
-    static async invest(signer: Signer, dealData: Deal, ethToInvest: string) {
-        const weiToInvest = ethers.utils.parseEther(ethToInvest.toString())
-        console.log(weiToInvest.toString())
-        const minWeiAmount = ethers.utils.parseEther(dealData.minInvestmentPerInvestor!)
-        const maxWeiAmount = ethers.utils.parseEther(dealData.maxInvestmentPerInvestor!)
+    // static async invest(signer: Signer, dealData: Deal, ethToInvest: string) {
+    //     const weiToInvest = ethers.utils.parseEther(ethToInvest.toString())
+    //     console.log(weiToInvest.toString())
+    //     const minWeiAmount = ethers.utils.parseEther(dealData.minInvestmentPerInvestor!)
+    //     const maxWeiAmount = ethers.utils.parseEther(dealData.maxInvestmentPerInvestor!)
 
-        let txn = await SmartContractService.invest(dealData.dealAddress!, signer, weiToInvest)
-        return txn;
-    }
+    //     let txn = await SmartContractService.invest(dealData.dealAddress!, signer, weiToInvest)
+    //     return txn;
+    // }
 
     static async sendTokens(signer: Signer, dealData: Deal, amount: string) {
         return await SmartContractService.sendERC20Tokens(dealData.startupTokenAddress!, dealData.dealAddress!, signer, amount)

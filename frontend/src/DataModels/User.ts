@@ -118,6 +118,21 @@ export default class NetworkUser extends Moralis.Object {
         return nftMetadata
     }
 
+    async getNftsForDeal(nftAddress: string, chainId: number) {
+        const options = { chain: "testnet", address: this.getAddress() };
+        // @ts-ignore
+        const result = await Moralis.Web3API.account.getNFTs(options)
+        console.log(result)
+        if (!result.result) {
+            return []
+        } 
+        const resultFilteredByNftAddress = result.result.filter((nft) => {
+
+            return (nft.token_address.toLowerCase() == nftAddress.toLowerCase())
+        })
+        return resultFilteredByNftAddress
+    }
+
     static empty(address?: string) {
         return NetworkUser.createUser((address === undefined ? "" : address), "")
     }

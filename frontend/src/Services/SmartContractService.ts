@@ -26,15 +26,22 @@ export default class SmartContractService {
         return txn
     }
 
-    static async invest(dealContractAddress: string, signer: ethers.Signer, weiToInvest: BigNumber) {
-        const contract = new ethers.Contract(dealContractAddress, Deal.abi, signer)
+    static async invest(dealContractAddress: string, paymentTokenAddress: string, tokenBitsToInvest: BigNumber, nftId: number, user: Moralis.User) {
+        const signer = await SmartContractService.getSignerForUser(user)
 
-        let overrides = {
-            value: weiToInvest 
-        };
+        if (!signer) {
+            return {error: "Signer does not match user address"}
+        }
+        const contract = new ethers.Contract(dealContractAddress, Deal.abi, signer)
+        const paymentTokenContract = new ethers.Contract(paymentTokenAddress, ERC20_ABI, signer)
+
+        let approveTxn = await makeSafe(paymentTokenContract.approve)(dealContractAddress, tokenBitsToInvest)
+
+        if (approveTxn.error) {
+            return approveTxn
+        }
         
-        // Pass in the overrides
-        let txn = await makeSafe(contract.invest)(overrides);
+        let txn = await makeSafe(contract.invest)(tokenBitsToInvest, nftId);
 
         return txn
     }
@@ -116,6 +123,13 @@ export default class SmartContractService {
     static async fetchSubscribedInvestors(dealAddress: string, provider: providers.Provider) {
         const contract = new ethers.Contract(dealAddress, Deal.abi, provider)
         const result =  await contract.getInvestors()
+        return result
+    }
+
+    static async fetchDealTotalInvestmentReceived(dealAddress: string, chainId: number) {
+        const provider = await getProviderForChainId(chainId)
+        const contract = new ethers.Contract(dealAddress, Deal.abi, provider)
+        const result = await contract.totalReceivedInvestment()
         return result
     }
 

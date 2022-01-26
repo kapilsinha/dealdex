@@ -18,37 +18,51 @@ export const DealDetailsProvider = ({ children }) => {
     const search = useLocation().search
     const dealAddress  = new URLSearchParams(search).get('address')
     const {selectedNetworkChainId} = useContext(NetworkContext)
+    const {user} = useMoralis()
 
     console.log(dealAddress)
 
     const [state, setState] = useState({
         dealMetadata: undefined,
         dealConfig: undefined,
-        nftMetadata: undefined
+        nftMetadata: undefined,
+        totalRaised: undefined,
+        validNfts: []
     })
 
     useEffect(() => {
         async function fetchDeal() {
-            const dealMetadata = await DatabaseService.getDealMetadata(dealAddress)
-            console.log(dealMetadata)
 
-            console.log(selectedNetworkChainId)
+            if (!user) {
+                return
+            }
+            const currentUser = await DatabaseService.getUser(user.get("ethAddress"))
+
+            if (!currentUser) {
+                return
+            }
+
+            const dealMetadata = await DatabaseService.getDealMetadata(dealAddress)
+
             const dealConfigStruct = await SmartContractService.fetchDealConfig(dealAddress, selectedNetworkChainId) 
             console.log(dealConfigStruct)
 
             const dealConfig = await DealConfig.fromSmartContractStruct(dealConfigStruct, selectedNetworkChainId)
-            console.log(dealConfig)
 
             var nftMetadata = undefined
+            var totalRaised = undefined
+            var validNfts = []
             if(dealConfig) {
                 nftMetadata = await SmartContractService.getNFTMetadata(dealConfig.investConfig.gateToken, selectedNetworkChainId)
+                totalRaised = await SmartContractService.fetchDealTotalInvestmentReceived(dealAddress, selectedNetworkChainId)
+                validNfts = await currentUser.getNftsForDeal(dealConfig.investConfig.gateToken, selectedNetworkChainId)
             }
 
-            setState({dealMetadata, dealConfig, nftMetadata})
+            setState({dealMetadata, dealConfig, nftMetadata, totalRaised, validNfts})
         }
         fetchDeal()
 
-    }, [])
+    }, [user])
 
     
 

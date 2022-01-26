@@ -29,6 +29,8 @@ export default function DealDexNumberForm(props) {
     let errorText = props.errorText
     let value = props.value
     let precision = props.precision
+    let min = props.min
+    let max = props.max
     var isRequired 
     if (props.isRequired) {
         isRequired = props.isRequired
@@ -51,6 +53,8 @@ export default function DealDexNumberForm(props) {
                     placeholder={placeholder}
                     isDisabled={props.disabled}
                     precision={precision}
+                    min={min}
+                    max={max}
                 >
                     <NumberInputField />
                     {(props.appendChar) && 

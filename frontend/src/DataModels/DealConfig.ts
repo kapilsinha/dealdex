@@ -141,7 +141,9 @@ class DealToken {
 
 
 class ExchangeRate {
+    // paymentToken per project token
     displayValue: string
+
     projectTokenBits: BigNumber
     paymentTokenBits: BigNumber
     projectToken: DealToken
@@ -163,18 +165,18 @@ class ExchangeRate {
 
     // Static factory methods
 
-    static fromDisplayValue(projectTokenPerPaymentToken: string, paymentToken: DealToken, projectToken?: DealToken) {
+    static fromDisplayValue(paymentTokenPerProjectToken: string, paymentToken: DealToken, projectToken?: DealToken) {
         // If the project token does not exist yet, assume it has the same decimals as payment token
         const projectTokenUnwrapped = projectToken || paymentToken
 
         const multiplier = (new BigNumberJS(10)).exponentiatedBy(paymentToken.decimals - projectTokenUnwrapped.decimals)
 
-        const projectBitsPerPaymentBits = (new BigNumberJS(projectTokenPerPaymentToken)).multipliedBy(multiplier)
+        const paymentBitsPerProjectBits = (new BigNumberJS(paymentTokenPerProjectToken)).multipliedBy(multiplier)
 
-        const [projectBits, paymentBits] = projectBitsPerPaymentBits.toFraction()
+        const [paymentBits, projectBits] = paymentBitsPerProjectBits.toFraction()
 
         return new ExchangeRate(
-            projectTokenPerPaymentToken,
+            paymentTokenPerProjectToken,
             BigNumber.from(projectBits.toString()),
             BigNumber.from(paymentBits.toString()),
             paymentToken,
@@ -191,11 +193,11 @@ class ExchangeRate {
 
         const paymentBitsJS = new BigNumberJS(paymentBits.toString())
         const projectBitsJS = new BigNumberJS(projectBits.toString())
-        const projectBitsPerPaymentBits = projectBitsJS.dividedBy(paymentBitsJS)
+        const paymentBitsPerProjectBits = paymentBitsJS.dividedBy(projectBitsJS)
 
         const multiplier = (new BigNumberJS(10)).exponentiatedBy(projectTokenUnwrapped.decimals - paymentToken.decimals)
 
-        const displayValue = projectBitsPerPaymentBits.multipliedBy(multiplier).toString()
+        const displayValue = paymentBitsPerProjectBits.multipliedBy(multiplier).toString()
 
         return new ExchangeRate(
             displayValue,
@@ -335,9 +337,15 @@ class ClaimTokensConfig {
     }
 
     static fromSmartContractStruct(tokensConfigStruct: any) {
+        var projectToken = undefined
+
+        if (tokensConfigStruct.projectTokenAddress != ethers.constants.AddressZero) {
+            projectToken = tokensConfigStruct.projectTokenAddress
+        }
+
         return new ClaimTokensConfig(
             tokensConfigStruct.dealdexFeeBps,
-            tokensConfigStruct.projectTokenAddress,
+            projectToken,
             tokensConfigStruct.managerFeeBps
         )
     }

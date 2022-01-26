@@ -1,7 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Button, Container, Flex, FormControl, FormLabel, Heading, Table, Tbody, Td, Text, Th, Thead, Tr, VStack, Box, HStack, Badge, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, InputLeftElement, FormHelperText, Tabs, TabList, TabPanels, Tab, TabPanel, Select } from "@chakra-ui/react";
 
+import {DealDetailsContext} from "../../../Contexts/DealDetailsContext"
+
+
 export default function ProjectCard(props) {
+
+    const {dealMetadata, dealConfig, totalRaised} = useContext(DealDetailsContext)  
+
+    var projectName = ""
+    var tokenName = ""
+    var tokenPrice = ""
+    var totalRaisedDisplay = ""
+
+    console.log(totalRaised)
+
+    if (dealMetadata && totalRaised && dealConfig) {
+        projectName = dealMetadata.getProject().getName()
+        const projectTokenAddress = dealConfig.claimTokensConfig.startupTokenAddress
+        const projectToken = dealConfig.exchangeRate.projectToken
+        const paymentToken = dealConfig.exchangeRate.paymentToken
+        if (projectTokenAddress) {
+            tokenName = `${projectToken.name} (${projectToken.symbol})`
+        } else {
+            tokenName = "Not specified yet"
+        }
+        tokenPrice = `${dealConfig.exchangeRate.displayValue} ${paymentToken.symbol}`
+        totalRaisedDisplay = `${paymentToken.getTokens(totalRaised)} ${paymentToken.symbol}`
+        
+    }
+
+
+
     return(
         <Box layerStyle="detailSummaryWrap" w="60%" h="340px" px="40px">
             <Heading size="md" py="3px">
@@ -12,22 +42,22 @@ export default function ProjectCard(props) {
                 <Tbody>
                     <Tr>
                         <Td>Name</Td>
-                        <Td textAlign={"right"}>Postered Eyewear</Td>
+                        <Td textAlign={"right"}>{projectName}</Td>
                     </Tr>
                     <Tr>
                         <Td>Token</Td>
-                        <Td textAlign={"right"}>{"Postered Coin (PSTRD)"}</Td>
+                        <Td textAlign={"right"}>{tokenName}</Td>
                     </Tr>
                     <Tr>
                         <Td>Token Price</Td>
                         <Td textAlign={"right"}>
-                            {"52500.50"} {"USDC"}
+                            {tokenPrice}
                         </Td>
                     </Tr>
                     <Tr>
                         <Td>Total Raised</Td>
                         <Td textAlign={"right"}>
-                            {"120000024"} {"USDC"}
+                            {totalRaisedDisplay}
                         </Td>
                     </Tr>
                 </Tbody>
