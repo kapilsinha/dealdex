@@ -251,13 +251,13 @@ export default class DealService {
         return await SmartContractService.claimFunds(dealData.dealAddress!, signer)
     }
 
-    static async claimRefund(signer: Signer, dealData: Deal) {
-        return await SmartContractService.claimRefund(dealData.dealAddress!, signer)
-    }
+    // static async claimRefund(signer: Signer, dealData: Deal) {
+    //     return await SmartContractService.claimRefund(dealData.dealAddress!, signer)
+    // }
 
-    static async claimTokens(signer: Signer, dealData: Deal) {
-        return await SmartContractService.claimTokens(dealData.dealAddress!, signer)
-    }
+    // static async claimTokens(signer: Signer, dealData: Deal) {
+    //     return await SmartContractService.claimTokens(dealData.dealAddress!, signer)
+    // }
 
     static async updateStartupToken(user: NetworkUser, 
                                     dealData: Deal, 

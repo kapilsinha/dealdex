@@ -30,7 +30,7 @@ export default class SmartContractService {
         const signer = await SmartContractService.getSignerForUser(user)
 
         if (!signer) {
-            return {error: "Signer does not match user address"}
+            return {error: "Invalid signer"}
         }
         const contract = new ethers.Contract(dealContractAddress, Deal.abi, signer)
         const paymentTokenContract = new ethers.Contract(paymentTokenAddress, ERC20_ABI, signer)
@@ -52,15 +52,26 @@ export default class SmartContractService {
         return txn
     }
 
-    static async claimRefund(dealContractAddress: string, signer: ethers.Signer) {
+    static async claimRefund(dealContractAddress: string, nftId: number, user: Moralis.User) {
+        const signer = await SmartContractService.getSignerForUser(user)
+
+        if (!signer) {
+            return {error: "Invalid signer"}
+        }
+
         const contract = new ethers.Contract(dealContractAddress, Deal.abi, signer)
-        let txn = await makeSafe(contract.claimRefund)();
+        let txn = await makeSafe(contract.claimRefund)(nftId);
         return txn
     }
 
-    static async claimTokens(dealContractAddress: string, signer: ethers.Signer) {
+    static async claimTokens(dealContractAddress: string, nftId: number, user: Moralis.User) {
+        const signer = await SmartContractService.getSignerForUser(user)
+
+        if (!signer) {
+            return {error: "Invalid signer"}
+        }
         const contract = new ethers.Contract(dealContractAddress, Deal.abi, signer)
-        let txn = await makeSafe(contract.claimTokens)();
+        let txn = await makeSafe(contract.claimTokens)(nftId);
         return txn
     }
 
@@ -120,7 +131,15 @@ export default class SmartContractService {
         return result
     }
 
-    static async fetchSubscribedInvestors(dealAddress: string, provider: providers.Provider) {
+    static async fetchDealIsLocked(dealAddress: string, chainId: number) {
+        const provider = await getProviderForChainId(chainId)
+        const contract = new ethers.Contract(dealAddress, Deal.abi, provider)
+        const result = await contract.isLocked()
+        return result
+    }
+
+    static async fetchSubscribedInvestors(dealAddress: string, chainId: number) {
+        const provider = await getProviderForChainId(chainId)
         const contract = new ethers.Contract(dealAddress, Deal.abi, provider)
         const result =  await contract.getInvestors()
         return result
