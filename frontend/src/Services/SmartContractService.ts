@@ -46,7 +46,13 @@ export default class SmartContractService {
         return txn
     }
 
-    static async claimFunds(dealContractAddress: string, signer: ethers.Signer) {
+    static async claimFunds(dealContractAddress: string, user: Moralis.User) {
+        const signer = await SmartContractService.getSignerForUser(user)
+
+        if (!signer) {
+            return {error: "Invalid signer"}
+        }
+
         const contract = new ethers.Contract(dealContractAddress, Deal.abi, signer)
         let txn = await makeSafe(contract.claimFunds)();
         return txn
@@ -75,14 +81,26 @@ export default class SmartContractService {
         return txn
     }
 
-    static async updateProjectToken(dealContractAddress: string, newToken: String, exchangeRate: ExchangeRate, signer: ethers.Signer) {
+    static async updateProjectToken(dealContractAddress: string, newToken: String, exchangeRate: ExchangeRate, user: Moralis.User) {
+        const signer = await SmartContractService.getSignerForUser(user)
+
+        if (!signer) {
+            return {error: "Invalid signer"}
+        }
+        
         const contract = new ethers.Contract(dealContractAddress, Deal.abi, signer)
         let tickDetails = exchangeRate.toSmartContractInput()
-        let txn = await makeSafe(contract.setStartupToken)(newToken, tickDetails);
+        let txn = await makeSafe(contract.setProjectTokenDetails)(newToken, tickDetails[0], tickDetails[1]);
         return txn
     }
 
-    static async sendERC20Tokens(erc20TokenAddress: string, dealContractAddress: string, signer: ethers.Signer, amount: string) {
+    static async sendERC20Tokens(erc20TokenAddress: string, dealContractAddress: string, user: Moralis.User, amount: string) {
+        const signer = await SmartContractService.getSignerForUser(user)
+
+        if (!signer) {
+            return {error: "Invalid signer"}
+        }
+
         const tokenContract = new ethers.Contract(erc20TokenAddress, ERC20_ABI, signer)
         const decimals = await tokenContract.decimals()
         let amountNum = Number(amount) * 10**decimals;
@@ -162,10 +180,16 @@ export default class SmartContractService {
         return decimals
     }
 
-    static async getERC20Balance(erc20TokenAddress: string, walletAddress: string, provider: providers.Provider | ethers.Signer): Promise<BigNumber | undefined> {
+    static async getERC20Balance(erc20TokenAddress: string, walletAddress: string, chainId: number): Promise<BigNumber | undefined> {
         if (erc20TokenAddress === ethers.constants.AddressZero) {
             return undefined
         } 
+
+        const provider = await getProviderForChainId(chainId)
+        
+        if (!provider) {
+            return undefined
+        }
 
         const tokenContract = new ethers.Contract(erc20TokenAddress, ERC20_ABI, provider)
         const balance = await tokenContract.balanceOf(walletAddress)

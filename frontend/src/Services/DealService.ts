@@ -243,13 +243,13 @@ export default class DealService {
     //     return txn;
     // }
 
-    static async sendTokens(signer: Signer, dealData: Deal, amount: string) {
-        return await SmartContractService.sendERC20Tokens(dealData.startupTokenAddress!, dealData.dealAddress!, signer, amount)
-    }
+    // static async sendTokens(signer: Signer, dealData: Deal, amount: string) {
+    //     return await SmartContractService.sendERC20Tokens(dealData.startupTokenAddress!, dealData.dealAddress!, signer, amount)
+    // }
 
-    static async claimFunds(signer: Signer, dealData: Deal) {
-        return await SmartContractService.claimFunds(dealData.dealAddress!, signer)
-    }
+    // static async claimFunds(signer: Signer, dealData: Deal) {
+    //     return await SmartContractService.claimFunds(dealData.dealAddress!, signer)
+    // }
 
     // static async claimRefund(signer: Signer, dealData: Deal) {
     //     return await SmartContractService.claimRefund(dealData.dealAddress!, signer)
@@ -288,42 +288,42 @@ function getValidatedAddress(address: string): string | undefined {
     return address
 }
 
-async function getTokensInContract(startupTokenAddress: string,
-                                   contractAddress: string,
-                                   provider: ethers.providers.Provider): Promise<string | undefined> {
+// async function getTokensInContract(startupTokenAddress: string,
+//                                    contractAddress: string,
+//                                    provider: ethers.providers.Provider): Promise<string | undefined> {
 
-    const decimals = await SmartContractService.getERC20Decimals(startupTokenAddress, provider)
+//     const decimals = await SmartContractService.getERC20Decimals(startupTokenAddress, provider)
 
-    if (decimals === undefined) {
-        return undefined
-    }
+//     if (decimals === undefined) {
+//         return undefined
+//     }
 
-    const tokenBitsInContract = await SmartContractService.getERC20Balance(startupTokenAddress, contractAddress, provider)
+//     const tokenBitsInContract = await SmartContractService.getERC20Balance(startupTokenAddress, contractAddress, provider)
 
-    if (tokenBitsInContract === undefined) {
-        return undefined
-    }
-    const tokensInContract = ethers.utils.formatUnits(tokenBitsInContract, decimals)
-    return tokensInContract
-}
+//     if (tokenBitsInContract === undefined) {
+//         return undefined
+//     }
+//     const tokensInContract = ethers.utils.formatUnits(tokenBitsInContract, decimals)
+//     return tokensInContract
+// }
 
-async function getEthPerTokenInContract(startupTokenAddress: string,
-                                        tickSize: BigNumber,
-                                        tickValue: BigNumber, 
-                                        provider: ethers.providers.Provider): Promise<string | undefined> {
-    if (startupTokenAddress === ethers.constants.AddressZero) {
-        return undefined
-    }
+// async function getEthPerTokenInContract(startupTokenAddress: string,
+//                                         tickSize: BigNumber,
+//                                         tickValue: BigNumber, 
+//                                         provider: ethers.providers.Provider): Promise<string | undefined> {
+//     if (startupTokenAddress === ethers.constants.AddressZero) {
+//         return undefined
+//     }
 
-    const decimals = await SmartContractService.getERC20Decimals(startupTokenAddress, provider)
-    if (decimals === undefined) {
-        return undefined
-    }
+//     const decimals = await SmartContractService.getERC20Decimals(startupTokenAddress, provider)
+//     if (decimals === undefined) {
+//         return undefined
+//     }
 
-    const ethPerToken = getEthPerToken(tickSize, tickValue, decimals)
+//     const ethPerToken = getEthPerToken(tickSize, tickValue, decimals)
 
-    return ethPerToken
-}
+//     return ethPerToken
+// }
 
 function isInvalidAddress(address: any) {
     return address === undefined || address === ""

@@ -146,7 +146,7 @@ class ExchangeRate {
 
     projectTokenBits: BigNumber
     paymentTokenBits: BigNumber
-    projectToken: DealToken
+    projectToken?: DealToken
     paymentToken: DealToken
 
     constructor(displayValue: string, 
@@ -158,9 +158,7 @@ class ExchangeRate {
         this.projectTokenBits = projectTokenBits
         this.paymentTokenBits = paymentTokenBits
         this.paymentToken = paymentToken
-
-        // If the project token does not exist yet, assume it has the same decimals as payment token
-        this.projectToken = projectToken || paymentToken 
+        this.projectToken = projectToken 
     }
 
     // Static factory methods
@@ -180,7 +178,7 @@ class ExchangeRate {
             BigNumber.from(projectBits.toString()),
             BigNumber.from(paymentBits.toString()),
             paymentToken,
-            projectTokenUnwrapped
+            projectToken
         )
     }
 
@@ -204,7 +202,7 @@ class ExchangeRate {
             projectBits,
             paymentBits,
             paymentToken,
-            projectTokenUnwrapped
+            projectToken
         )
 
     }
