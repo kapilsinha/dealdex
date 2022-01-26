@@ -7,9 +7,10 @@ import VestingScheduleCard from "./Components/VestingScheduleCard";
 import FundingAmountCard from "./Components/FundingAmountCard";
 import SubscribedInvestorsCard from "./Components/SubscribedInvestorsCard";
 import {DealDetailsContext} from "../../Contexts/DealDetailsContext"
+import ClaimFundsCard from "./Components/ClaimFundsCard";
 
 function DealDetailsViewProject(props) {
-  const {dealMetadata, dealConfig} = useContext(DealDetailsContext)  
+  const {dealMetadata, dealConfig, userIsProject, userIsManager} = useContext(DealDetailsContext)  
 
   const dealName = dealMetadata ? dealMetadata.getName() : ""
   const managerName = dealMetadata ? dealMetadata.getManager().getName() : ""
@@ -39,7 +40,9 @@ function DealDetailsViewProject(props) {
           <VStack w="full" spacing={3} alignItems="flex-start">
             <HStack w="full" py="10px" spacing={5}>
               <ProjectCard />
-              <InvestCard />
+              {userIsProject !== undefined && 
+                (userIsProject ? <ClaimFundsCard /> : <InvestCard />)
+              }
             </HStack>
           </VStack>
           <VStack w="full" spacing={3} alignItems="flex-start" pb="16px">

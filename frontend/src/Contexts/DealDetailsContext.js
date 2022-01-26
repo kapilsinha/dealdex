@@ -30,7 +30,9 @@ export const DealDetailsProvider = ({ children }) => {
         validNfts: [],
         investedNfts: [],
         subscribedInvestors: undefined,
-        dealIsLocked: undefined
+        dealIsLocked: undefined,
+        userIsProject: undefined,
+        userIsManager: undefined
     })
 
     useEffect(() => {
@@ -60,7 +62,12 @@ export const DealDetailsProvider = ({ children }) => {
             var validNfts = []
             var subscribedInvestors = undefined
             var investedNfts = []
-            if(dealConfig) {
+            var userIsProject = undefined
+            var userIsManager = undefined
+            if(dealConfig && dealMetadata) {
+                userIsProject = currentUser.getAddress().toLowerCase() == dealMetadata.getProject().getAddress().toLowerCase()
+                userIsManager = currentUser.getAddress().toLowerCase() == dealMetadata.getManager().getAddress().toLowerCase()
+
                 nftMetadata = await SmartContractService.getNFTMetadata(dealConfig.investConfig.gateToken, selectedNetworkChainId)
                 const nftMap = await currentUser.getNftsForDeal(dealConfig.investConfig.gateToken, selectedNetworkChainId)
                 subscribedInvestors = await SmartContractService.fetchSubscribedInvestors(dealAddress, selectedNetworkChainId)
@@ -76,7 +83,18 @@ export const DealDetailsProvider = ({ children }) => {
                 validNfts = Array.from(nftMap.values())
             }
 
-            setState({dealMetadata, dealConfig, nftMetadata, totalRaised, validNfts, investedNfts, subscribedInvestors, dealIsLocked})
+            setState({
+                dealMetadata, 
+                dealConfig,
+                nftMetadata, 
+                totalRaised, 
+                validNfts, 
+                investedNfts, 
+                subscribedInvestors, 
+                dealIsLocked, 
+                userIsProject, 
+                userIsManager 
+            })
         }
         fetchDeal()
 
