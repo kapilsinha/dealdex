@@ -18,92 +18,106 @@ export const DealDetailsProvider = ({ children }) => {
     const search = useLocation().search
     const dealAddress  = new URLSearchParams(search).get('address')
     const {selectedNetworkChainId} = useContext(NetworkContext)
-    const {user} = useMoralis()
+    const {user, isUserUpdating} = useMoralis()
 
     console.log(dealAddress)
 
-    const [state, setState] = useState({
-        dealMetadata: undefined,
-        dealConfig: undefined,
-        nftMetadata: undefined,
-        totalRaised: undefined,
-        validNfts: [],
-        investedNfts: [],
-        subscribedInvestors: undefined,
-        dealIsLocked: undefined,
-        userIsProject: undefined,
-        userIsManager: undefined
-    })
+    const [dealMetadata, setDealMetadata] = useState(undefined)
+    const [dealConfig, setDealConfig] = useState(undefined)
+    const [nftMetadata, setNftMetadata] = useState(undefined)
+    const [totalRaised, setTotalRaised] = useState(undefined)
+    const [validNfts, setValidNfts] = useState([])
+    const [investedNfts, setInvestedNfts] = useState([])
+    const [subscribedInvestors, setSubscribedInvestors] = useState(undefined)
+    const [dealIsLocked, setDealIsLocked] = useState(undefined)
+    const [userIsProject, setUserIsProject] = useState(undefined)
+    const [userIsManager, setUserIsManager] = useState(undefined)
 
     useEffect(() => {
-        async function fetchDeal() {
+        async function fetchUserData() {
+            if (dealMetadata && dealConfig && subscribedInvestors) {
+                if (!user) {
+                    setUserIsProject(false)
+                    setUserIsManager(false)
+                    return
+                }
 
-            if (!user) {
-                return
-            }
-            const currentUser = await DatabaseService.getUser(user.get("ethAddress"))
+                const currentUser = await DatabaseService.getUser(user.get("ethAddress"))
 
-            if (!currentUser) {
-                return
-            }
+                if (!currentUser) {
+                    return
+                }
 
-            const dealMetadata = await DatabaseService.getDealMetadata(dealAddress)
-
-            const dealConfigStruct = await SmartContractService.fetchDealConfig(dealAddress, selectedNetworkChainId) 
-
-            const dealConfig = await DealConfig.fromSmartContractStruct(dealConfigStruct, selectedNetworkChainId)
-
-            const dealIsLocked = await SmartContractService.fetchDealIsLocked(dealAddress, selectedNetworkChainId)
-
-            const totalRaised = await SmartContractService.fetchDealTotalInvestmentReceived(dealAddress, selectedNetworkChainId)
+                const isProject = currentUser.getAddress().toLowerCase() == dealMetadata.getProject().getAddress().toLowerCase()
+                const isManager = currentUser.getAddress().toLowerCase() == dealMetadata.getManager().getAddress().toLowerCase()
+                setUserIsProject(isProject)
+                setUserIsManager(isManager)
 
 
-            var nftMetadata = undefined
-            var validNfts = []
-            var subscribedInvestors = undefined
-            var investedNfts = []
-            var userIsProject = undefined
-            var userIsManager = undefined
-            if(dealConfig && dealMetadata) {
-                userIsProject = currentUser.getAddress().toLowerCase() == dealMetadata.getProject().getAddress().toLowerCase()
-                userIsManager = currentUser.getAddress().toLowerCase() == dealMetadata.getManager().getAddress().toLowerCase()
+                
 
-                nftMetadata = await SmartContractService.getNFTMetadata(dealConfig.investConfig.gateToken, selectedNetworkChainId)
                 const nftMap = await currentUser.getNftsForDeal(dealConfig.investConfig.gateToken, selectedNetworkChainId)
-                subscribedInvestors = await SmartContractService.fetchSubscribedInvestors(dealAddress, selectedNetworkChainId)
+                
+
+                const nftsUsedForInvestment = []
                 for (const [i, investmentKey] of subscribedInvestors._investmentKeys.entries() ) {
                     const primaryKey = `${investmentKey.addr.toLowerCase()}_${investmentKey.id.toNumber()}`
                     const investedNft = nftMap.get(primaryKey)
                     if (investedNft) {
                         const investment = subscribedInvestors._investments[i]
-                        investedNfts.push({investedNft, investment })
+                        nftsUsedForInvestment.push({investedNft, investment })
                         nftMap.delete(primaryKey)
                     } 
                 }
-                validNfts = Array.from(nftMap.values())
-            }
+                setValidNfts(Array.from(nftMap.values()))
+                setInvestedNfts(nftsUsedForInvestment)
 
-            setState({
-                dealMetadata, 
-                dealConfig,
-                nftMetadata, 
-                totalRaised, 
-                validNfts, 
-                investedNfts, 
-                subscribedInvestors, 
-                dealIsLocked, 
-                userIsProject, 
-                userIsManager 
-            })
+            }
+        }
+        fetchUserData()
+    }, [user, dealMetadata, dealConfig, subscribedInvestors])
+
+    useEffect(() => {
+        async function fetchSmartContractData() {
+            const isLocked = await SmartContractService.fetchDealIsLocked(dealAddress, selectedNetworkChainId)
+            const raised = await SmartContractService.fetchDealTotalInvestmentReceived(dealAddress, selectedNetworkChainId)
+            const subscribed = await SmartContractService.fetchSubscribedInvestors(dealAddress, selectedNetworkChainId)
+            
+
+            setSubscribedInvestors(subscribed)
+            setDealIsLocked(isLocked)
+            setTotalRaised(raised)
+
+        }
+        async function fetchDeal() {
+            const metadata = await DatabaseService.getDealMetadata(dealAddress)
+            const dealConfigStruct = await SmartContractService.fetchDealConfig(dealAddress, selectedNetworkChainId) 
+            const config = await DealConfig.fromSmartContractStruct(dealConfigStruct, selectedNetworkChainId)
+            const gateNft = await SmartContractService.getNFTMetadata(config.investConfig.gateToken, selectedNetworkChainId)
+            console.log(gateNft)
+            setNftMetadata(gateNft)
+
+            setDealMetadata(metadata)
+            setDealConfig(config)
         }
         fetchDeal()
+        fetchSmartContractData()
 
-    }, [user])
-
-    
+    }, [])
 
   return (
-    <DealDetailsContext.Provider value={state}>
+    <DealDetailsContext.Provider value={{
+        dealMetadata, 
+        dealConfig, 
+        nftMetadata, 
+        totalRaised, 
+        validNfts, 
+        investedNfts, 
+        subscribedInvestors, 
+        dealIsLocked,
+        userIsProject,
+        userIsManager
+    }}>
         {children}
     </DealDetailsContext.Provider>
   );

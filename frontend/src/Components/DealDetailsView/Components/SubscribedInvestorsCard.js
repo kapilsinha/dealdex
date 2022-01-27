@@ -28,7 +28,7 @@ export default function SubscribedInvestorsCard(props) {
                 <Table variant="dealDetailProjectTable" size="md">
                 <Thead>
                     <Tr>
-                    <Th>Name</Th>
+                    <Th>NFT ID</Th>
                     <Th textAlign={"right"}>Investment</Th>
                     </Tr>
                 </Thead>

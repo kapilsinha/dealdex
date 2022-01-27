@@ -7,6 +7,7 @@ import {APP_ID, SERVER_URL} from "../../../App";
 import DealDexNumberForm from "../../../ReusableComponents/DealDexNumberForm"
 import {DealDetailsContext} from "../../../Contexts/DealDetailsContext"
 import SmartContractService from "../../../Services/SmartContractService"
+import AuthStrings from "../../../Strings/AuthStrings"
 
 
 function Invest(props) {
@@ -14,7 +15,7 @@ function Invest(props) {
     const toast = useToast();
 
     const {dealConfig, validNfts, dealMetadata} = useContext(DealDetailsContext)  
-    const {user} = useMoralis()
+    const {user, authenticate, isAuthenticating} = useMoralis()
 
     const [investAmt, setInvestAmt] = useState("0")
     const [nftId, setNftId] = useState(undefined)
@@ -106,9 +107,15 @@ function Invest(props) {
                 <Heading size="sm" py="3px" w="full" textAlign="right">{expectedTokens}</Heading>
             </HStack>
             <Center>
-                <Button variant="dealDetailTable" isDisabled={!buttonIsEnabled} onClick={invest}>
-                    Invest
-                </Button>
+                {user ? 
+                    <Button variant="dealDetailTable" isDisabled={!buttonIsEnabled} onClick={invest}>
+                        Invest
+                    </Button>
+                :   <Button variant="dealDetailTable" onClick={() => {authenticate({signingMessage: AuthStrings.signingMessage})}} isLoading={isAuthenticating}>
+                        Connect Wallet
+                    </Button>
+                }
+                
             </Center>
         </Container>
     )
