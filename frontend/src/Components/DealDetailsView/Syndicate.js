@@ -54,7 +54,10 @@ function DealDetailsViewProject(props) {
           </VStack>
           <VStack w="full" spacing={3} alignItems="flex-start">
             <HStack w="full" py="10px" spacing={5}>
-              <SubscribedInvestorsCard />
+              {userIsManager && 
+                <SubscribedInvestorsCard />
+              }
+              
             </HStack>
           </VStack>
         </VStack>

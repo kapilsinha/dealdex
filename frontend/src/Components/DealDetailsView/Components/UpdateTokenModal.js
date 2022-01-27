@@ -91,7 +91,7 @@ export default function UpdateTokenModal(props) {
 
     return(
         <>
-            <Button onClick={() => {
+            <Button variant="dealDetailTable" onClick={() => {
                 onOpen()
             }}>Update</Button>
 

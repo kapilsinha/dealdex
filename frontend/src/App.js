@@ -4,8 +4,7 @@ import { ChakraProvider } from '@chakra-ui/provider'
 import { MoralisProvider } from "react-moralis";
 import theme from './Utils/DealDexTheme.js'
 
-import DealDetailsViewInvestor from './Components/DealDetailsView'
-import DealDetailsViewProject from './Components/DealDetailsView/Projects'
+
 import DealDetailsViewSyndicate from './Components/DealDetailsView/Syndicate'
 import HomeView from "./Components/HomeView"
 import AccountView from './Components/AccountView'
@@ -46,9 +45,6 @@ function App() {
                     <DealDetailsViewSyndicate />
                   </DealDetailsProvider>
                 </Route>
-                <Route path="/dealDetailsInvestor" component={DealDetailsViewInvestor} />
-                <Route path="/dealDetailsProject" component={DealDetailsViewProject} />
-                <Route path="/dealDetailsSyndicate" component={DealDetailsViewSyndicate} />
               </Switch>
             </NetworkProvider>       
           </ChakraProvider>

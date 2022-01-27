@@ -1,11 +1,34 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Button, Container, Flex, FormControl, FormLabel, Heading, Table, Tbody, Td, Text, Th, Thead, Tr, VStack, Box, HStack, Badge, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, InputLeftElement, FormHelperText, Tabs, TabList, TabPanels, Tab, TabPanel, Select } from "@chakra-ui/react";
-import StepPercent from "./step-percent";
 import ProgressPercent from "./progress-percent";
 import { RoundNumbers } from "../../../Utils/ComponentUtils";
+import {DealDetailsContext} from "../../../Contexts/DealDetailsContext"
 
 
 export default function FundingAmountCard(props) {
+
+    const {dealMetadata, dealConfig, nftMetadata, totalRaised} = useContext(DealDetailsContext)  
+
+    var roundSizeDisplay = ""
+    var paymentTokenSymbol = ""
+    var totalRaisedDisplay = ""
+
+    var totalRaisedAmount = undefined
+    var minRoundSize = undefined
+    var maxRoundSize = undefined
+
+    if (totalRaised !== undefined && dealConfig) {
+        const paymentToken = dealConfig.exchangeRate.paymentToken
+        paymentTokenSymbol = paymentToken.symbol
+        totalRaisedAmount = Number(paymentToken.getTokens(totalRaised))
+        totalRaisedDisplay = `${totalRaisedAmount} ${paymentToken.symbol}`
+        minRoundSize = Number(paymentToken.getTokens(dealConfig.investConfig.minTotalInvestment))
+        maxRoundSize = Number(paymentToken.getTokens(dealConfig.investConfig.maxTotalInvestment))
+        roundSizeDisplay = `${minRoundSize} - ${maxRoundSize}`
+    }
+
+
+
 
     return(
         <Box layerStyle="detailSummaryWrap" w="46%" h="250px" px="40px">
@@ -18,10 +41,10 @@ export default function FundingAmountCard(props) {
                     ROUND SIZE
                 </Text>
                 <Heading size="md" py="3px">
-                    <RoundNumbers num={5000} /> - <RoundNumbers num={10000} />
+                    {roundSizeDisplay}
                 </Heading>
                 <Text fontSize="sm" color="gray.500">
-                    {"BAYC"}
+                    {paymentTokenSymbol}
                 </Text>
                 </Box>
                 <Box layerStyle="detailSummaryWrap" w="50%">
@@ -29,14 +52,14 @@ export default function FundingAmountCard(props) {
                     AMT RAISED
                 </Text>
                 <Heading size="md" py="3px">
-                    <RoundNumbers num={10000} />
+                    {totalRaisedDisplay}
                 </Heading>
                 <Text fontSize="sm" color="gray.500">
-                    {"USDC"}
+                    {paymentTokenSymbol}
                 </Text>
                 </Box>
             </HStack>
-            <ProgressPercent percent={80} />
+            <ProgressPercent maxRoundSize={maxRoundSize} amountRaised={totalRaisedAmount} paymentTokenSymbol={paymentTokenSymbol} />
         </Box>
     )
 }
