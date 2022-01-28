@@ -1,4 +1,4 @@
-Moralis.Cloud.afterSave("DealCreatedSync", async (request) => {
+Moralis.Cloud.afterSave("DealCreatedSyncJanTwentyEight", async (request) => {
 	if (request.object.get("confirmed") === undefined || request.object.get("confirmed") === false) {
 		// Write txnHash to pending deal object
 		const creatorQuery = new Moralis.Query("NetworkUser");

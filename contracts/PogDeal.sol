@@ -94,12 +94,13 @@ contract Deal is ILockableDeal {
         require(isValidLockStatus(config.investConfig.lockConstraint), string(abi.encodePacked("Cannot invest because the deal is ", (!isLockedFlag ? "un" : ""), "locked")));
 
         IERC20 investmentToken = IERC20(config.investConfig.investmentTokenAddress);
-        require(investmentToken.allowance(msg.sender, address(this)) >= amount, "Investor has not approved sufficient funds to invest");
+        // Adds a variable amount to the gas fees, which causes rpc nodes to be unable to estimate the fees
+        // require(investmentToken.allowance(msg.sender, address(this)) >= amount, "Investor has not approved sufficient funds to invest");
 
         setInvestmentKeyDict(investmentKeyToReceivedFunds, id, amount);
         totalReceivedInvestment += amount;
         bool success = investmentToken.transferFrom(msg.sender, address(this), amount);
-        require(success, "Failed to invest tokens");
+        require(success, "Failed to invest tokens, perhaps the investor has not approved sufficient funds to invest");
         // The funds are locked once the investment goal has been reached
         isLockedFlag = (totalReceivedInvestment >= config.investConfig.sizeConstraints.minTotalInvestment);
         investmentKeys.push(getInvestmentKey(id));
@@ -181,6 +182,8 @@ contract Deal is ILockableDeal {
         uint256 pendingDealdexFeeTokens = dealdexFeeTokens - getInvestmentKeyDict(investmentKeyToReceivedDealdexFeeTokens, id);
         uint256 pendingManagerFeeTokens = managerFeeTokens - getInvestmentKeyDict(investmentKeyToReceivedManagerFeeTokens, id);
         uint256 pendingInvestorTokens   = investorTokens   - getInvestmentKeyDict(investmentKeyToClaimedTokens, id);
+
+        require(pendingInvestorTokens > 0, "Investor has zero tokens available for claim");
 
         IERC20 projectToken = IERC20(config.tokensConfig.projectTokenAddress);
         uint256 availableTokens = projectToken.balanceOf(address(this));
