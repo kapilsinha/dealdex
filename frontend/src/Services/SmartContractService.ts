@@ -26,21 +26,28 @@ export default class SmartContractService {
         return txn
     }
 
-    static async invest(dealContractAddress: string, paymentTokenAddress: string, tokenBitsToInvest: BigNumber, nftId: number, user: Moralis.User) {
+    // Step 1 of 2 in investing
+    static async investApprove(dealContractAddress: string, paymentTokenAddress: string, tokenBitsToInvest: BigNumber, user: Moralis.User) {
         const signer = await SmartContractService.getSignerForUser(user)
 
         if (!signer) {
             return {error: "Invalid signer"}
         }
-        const contract = new ethers.Contract(dealContractAddress, Deal.abi, signer)
         const paymentTokenContract = new ethers.Contract(paymentTokenAddress, ERC20_ABI, signer)
 
         let approveTxn = await makeSafe(paymentTokenContract.approve)(dealContractAddress, tokenBitsToInvest)
 
-        if (approveTxn.error) {
-            return approveTxn
+        return approveTxn
+    }
+
+    // Step 2 of 2 in investing
+    static async investTransfer(dealContractAddress: string, tokenBitsToInvest: BigNumber, nftId: number, user: Moralis.User) {
+        const signer = await SmartContractService.getSignerForUser(user)
+
+        if (!signer) {
+            return {error: "Invalid signer"}
         }
-        
+        const contract = new ethers.Contract(dealContractAddress, Deal.abi, signer)        
         let txn = await makeSafe(contract.invest)(tokenBitsToInvest, nftId);
 
         return txn

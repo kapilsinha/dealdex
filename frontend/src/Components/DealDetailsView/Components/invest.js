@@ -30,22 +30,43 @@ function Invest(props) {
         const tokenBitsAmount = dealConfig.exchangeRate.paymentToken.getTokenBits(investAmt)
         const dealAddress = dealMetadata.getAddress()
         const paymentTokenAddress = dealConfig.exchangeRate.paymentToken.contractAddress
-        const result = await SmartContractService.invest(dealAddress, paymentTokenAddress, tokenBitsAmount, nftId, user)
 
-        if (result.error) {
+        const approveTxn = await SmartContractService.investApprove(dealAddress, paymentTokenAddress, tokenBitsAmount, user)
+        if (approveTxn.error) {
             toast({
-                title: result.error,
+                title: approveTxn.error,
                 status: "error",
                 isClosable: true,
                 position: "bottom-right",
             });
         } else {
             toast({
-                title: "Successfully invested",
-                status: "success",
+                title: "You're not done! You have approved your investment, but we have not collected any funds from you. Once your txn is processed (please wait up to a few minutes), we will prompt you to finish your investment",
+                status: "info",
                 isClosable: true,
                 position: "bottom-right",
+                duration: null
             });
+            // The approval needs to finish before attempting to invest, otherwise investor has "insufficient allowance"
+            await approveTxn.wait();
+
+            const investResult = await SmartContractService.investTransfer(dealAddress, tokenBitsAmount, nftId, user)
+            toast.closeAll()
+            if (investResult.error) {
+                toast({
+                    title: investResult.error,
+                    status: "error",
+                    isClosable: true,
+                    position: "bottom-right",
+                });
+            } else {
+                toast({
+                    title: "Successfully invested!",
+                    status: "success",
+                    isClosable: true,
+                    position: "bottom-right",
+                });
+            }
         }
     }
 
