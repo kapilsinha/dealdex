@@ -18,12 +18,19 @@ export default function DealCard(props) {
     const minInvestmentAmount = dealMetadata.getMinInvestmentAmt()
     const paymentTokenAddress = dealMetadata.getInvestorPaymentToken()
     const deadline = dealMetadata.getInvestmentDeadline()
-    const dealAddress = dealMetadata.getAddress()
+    var dealAddress = undefined
+    
+    if (!isPending) {
+        dealAddress = dealMetadata.getAddress()
+    }
+    
 
     const history = useHistory()
 
     function clickHandler() {
-        history.push(`/dealDetails?address=${dealAddress}`)
+        if (dealAddress) {
+            history.push(`/dealDetails?address=${dealAddress}`)
+        }
     }
     
 
