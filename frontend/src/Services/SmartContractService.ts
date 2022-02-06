@@ -224,8 +224,8 @@ export default class SmartContractService {
     }
 
     static async getNFTMetadata(nftAddress: string, chainId: number) {
-        if (nftAddress === ethers.constants.AddressZero) {
-            return undefined
+        if (nftAddress === ethers.constants.AddressZero || nftAddress === undefined) {
+            return {name: "N/A", symbol: "N/A"}
         } 
 
         const provider = await getProviderForChainId(chainId)

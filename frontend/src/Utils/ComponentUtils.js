@@ -3,6 +3,7 @@ import { Box } from "@chakra-ui/react";
 
 import { APP_ID, SERVER_URL } from "../App";
 import { useMoralis } from "react-moralis";
+import {ethers} from "ethers"
 
 export const RoundNumbers = ({ num = 0 }) => {
   num = num.toString().replace(/[^0-9.]/g, "");
@@ -85,6 +86,9 @@ export const NFTName = ({ address }) => {
 
   useEffect(() => {
     async function getNFTMetadata() {
+      if(address == ethers.constants.AddressZero) {
+        return setNFTName("-")
+      }
       const option = { chain: "testnet", address: address };
       const NFT = await Moralis.Web3API.token.getNFTMetadata(option);
       return setNFTName(NFT.name);

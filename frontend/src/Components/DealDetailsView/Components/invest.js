@@ -50,7 +50,8 @@ function Invest(props) {
             // The approval needs to finish before attempting to invest, otherwise investor has "insufficient allowance"
             await approveTxn.wait();
 
-            const investResult = await SmartContractService.investTransfer(dealAddress, tokenBitsAmount, nftId, user)
+            let nftIdUsedToInvest = dealConfig.investConfig.gateToken ? nftId : 0
+            const investResult = await SmartContractService.investTransfer(dealAddress, tokenBitsAmount, nftIdUsedToInvest, user)
             toast.closeAll()
             if (investResult.error) {
                 toast({
@@ -70,7 +71,7 @@ function Invest(props) {
         }
     }
 
-    const buttonIsEnabled = dealMetadata && dealConfig && validNfts && investAmt && nftId && user
+    const buttonIsEnabled = dealMetadata && dealConfig && validNfts && investAmt && user && (dealConfig.investConfig.gateToken ? (nftId !== undefined) : true)
     if (dealConfig) {
         const paymentToken = dealConfig.exchangeRate.paymentToken
         minInvestPerNft = Number(paymentToken.getTokens(dealConfig.investConfig.minInvestmentPerInvestor))
@@ -93,19 +94,24 @@ function Invest(props) {
             setExpectedTokens(`${tokensAmt}`)
         }
     }, [investAmt])
+
+    var nftIsRequired = dealConfig ? (dealConfig.investConfig.gateToken) : false
     
 
     return (
         <Container>
-            <Select placeholder='Select your NFT' onChange={(e) => setNftId(e.target.value)}>
-                {
-                    validNfts.map((nft, index)=>{
-                        return (
-                            <option value={nft.token_id} key={nft.token_id}>{`${nft.symbol} #${nft.token_id}`}</option>
-                        );
-                    })
-                }
-            </Select>
+            {nftIsRequired &&
+                <Select placeholder='Select your NFT' onChange={(e) => setNftId(e.target.value)}>
+                    {
+                        validNfts.map((nft, index)=>{
+                            return (
+                                <option value={nft.token_id} key={nft.token_id}>{`${nft.symbol} #${nft.token_id}`}</option>
+                            );
+                        })
+                    }
+                </Select>
+            }
+            
             <DealDexNumberForm 
                 title="Amount to invest"
                 colSpan={2}

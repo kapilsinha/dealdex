@@ -53,7 +53,7 @@ function DealFormStep2(props) {
     const [tokenMetadataIsLoading, setTokenMetadataIsLoading] = useState(false)
 
     function inputsAreVerified() {
-        return (nftTokenMetadata 
+        return ((nftTokenMetadata || nftAddress == "")
                 && tokenMetadata 
                 && minRoundSize
                 && minRoundSize != ""
@@ -107,10 +107,10 @@ function DealFormStep2(props) {
                         placeholder = "ERC-721 NFT Contract Address"
                         value = {nftAddress}
                         onBlur = {e => setNftAddress(e.target.value.trim())}
-                        isRequired = {true}
+                        isRequired = {false}
                         verified = {(nftTokenMetadata !== undefined)}
                         isVerifying = {nftMetadataIsLoading}
-                        helperText = "Investors will use an NFT of this collection to invest in the deal. They will be able to claim their allotted project tokens with the NFT they used to invest."
+                        helperText = "(Optional) Investors will use an NFT of this collection to invest in the deal. They will be able to claim their allotted project tokens with the NFT they used to invest."
                         errorText = "Enter a valid ERC-721 NFT contract address."
                     />
                 </HStack>
@@ -201,7 +201,7 @@ function DealFormStep2(props) {
                         width="50%"
                         isRequired = {true}
                         appendChar = {tokenMetadata ? tokenMetadata.symbol : ""}
-                        disabled = {(nftTokenMetadata === undefined)}
+                        disabled = {(tokenMetadata === undefined)}
                         verified = {maxInvestPerInvestor != ""}
                         helperText = "The maximum amount of the payment token allowed for each investor/NFT."
                     />

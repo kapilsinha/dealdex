@@ -18,7 +18,6 @@ export default class DealService {
     static async createDeal(user: Moralis.User,
                             chainId: number,
                             dealName: string, 
-                            nftAddress: string,
                             paymentTokenAddress: string,
                             minRoundSize: string,
                             maxRoundSize: string,
@@ -28,6 +27,7 @@ export default class DealService {
                             projectWalletAddress: string,
                             projectTokenPrice: string,
                             vestingSchedule: Array<{percent: string, date: string}>,
+                            nftAddress?: string,
                             projectTokenAddress?: string,
                             syndicateWalletAddress?: string,
                             syndicationFee?: string) {
@@ -73,10 +73,9 @@ export default class DealService {
             paymentToken.getTokenBits(maxInvestPerInvestor),
             paymentToken.getTokenBits(minRoundSize),
             paymentToken.getTokenBits(maxRoundSize),
-            nftAddress,
             new Date(investDeadline),
             paymentTokenAddress,
-            1   // This means that the investment is tied to the NFT
+            nftAddress
         )
 
         let refundConfig = new RefundConfig(true)   // Allow refunds
@@ -139,7 +138,7 @@ export default class DealService {
             project, 
             manager, 
             paymentToken.contractAddress, 
-            dealConfig.investConfig.gateToken, 
+            dealConfig.investConfig.gateToken || ethers.constants.AddressZero, 
             minInvestmentAmt,
             getUnixTimestamp(dealConfig.investConfig.deadline).toNumber()
         );

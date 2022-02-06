@@ -241,19 +241,17 @@ class InvestConfig {
     maxInvestmentPerInvestor: BigNumber
     minTotalInvestment: BigNumber
     maxTotalInvestment: BigNumber
-    gateToken: string
+    gateToken?: string
     deadline: Date
     investmentTokenAddress: string
-    investmentKeyType: number
 
     constructor(minInvestmentPerInvestor: BigNumber, 
                 maxInvestmentPerInvestor: BigNumber, 
                 minTotalInvestment: BigNumber, 
                 maxTotalInvestment: BigNumber,
-                gateToken: string,
                 deadline: Date,
                 investmentTokenAddress: string,
-                investmentKeyType: number) {
+                gateToken?: string) {
         this.gateToken = gateToken
         this.minInvestmentPerInvestor = minInvestmentPerInvestor
         this.maxInvestmentPerInvestor = maxInvestmentPerInvestor
@@ -261,7 +259,6 @@ class InvestConfig {
         this.maxTotalInvestment = maxTotalInvestment
         this.deadline = deadline
         this.investmentTokenAddress = investmentTokenAddress
-        this.investmentKeyType = investmentKeyType
     }
 
     toSmartContractInput() {
@@ -274,28 +271,43 @@ class InvestConfig {
 
         const deadlineUnixTimestamp = getUnixTimestamp(this.deadline)
 
+        const gateToken = this.gateToken || ethers.constants.AddressZero
+
+        var investmentKeyType
+
+        if (this.gateToken) {
+            investmentKeyType = 1
+        } else {
+            investmentKeyType = 0
+        }
+
         return [
             _investmentSizeConstraints, 
             /* lockConstraint = NO_CONSTRAINT */ 0, 
             this.investmentTokenAddress,
-            /* gateToken */ this.gateToken, 
-            this.investmentKeyType,
+            /* gateToken */ gateToken, 
+            investmentKeyType,
             deadlineUnixTimestamp
         ];
     }
 
     static fromSmartContractStruct(investConfigStruct: any) {
         const deadlineUnixTimestamp = investConfigStruct.investmentDeadline.toNumber()
+
+        var gateToken
+        if (investConfigStruct.gateToken == ethers.constants.AddressZero) {
+            gateToken = undefined
+        } else {
+            gateToken = investConfigStruct.gateToken
+        }
         return new InvestConfig(
             investConfigStruct.sizeConstraints.minInvestmentPerInvestor,
             investConfigStruct.sizeConstraints.maxInvestmentPerInvestor,
             investConfigStruct.sizeConstraints.minTotalInvestment,
             investConfigStruct.sizeConstraints.maxTotalInvestment,
-            investConfigStruct.gateToken,
             getDateFromUnixTimestamp(deadlineUnixTimestamp),
             investConfigStruct.investmentTokenAddress,
-            investConfigStruct.investmentKeyType
-
+            gateToken
         )
     }
 }

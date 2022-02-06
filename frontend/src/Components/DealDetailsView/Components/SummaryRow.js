@@ -44,7 +44,11 @@ export default function SummaryRow(props) {
         <HStack w="full" py="20px" spacing={5}>
             <SummaryCard w="17%" title="FEES" value={fees} subText="Dealdex + syndicate fee" />
             <SummaryCard w="22%" title="INVESTMENT DEADLINE" value={deadline} subText={deadlineTimeZone} />
-            <SummaryCard w="18%" title="INVESTMENT PER NFT" value={`${minInvestPerNft}- ${maxInvestPerNft}`} subText={paymentTokenSymbol} />
+            <SummaryCard w="18%" 
+                title={dealConfig ? (dealConfig.investConfig.gateToken ? "INVESTMENT PER NFT" : "INVESTMENT PER WALLET") :"INVESTMENT PER -"} 
+                value={`${minInvestPerNft}- ${maxInvestPerNft}`} 
+                subText={paymentTokenSymbol} 
+            />
             <SummaryCard w="20%" title="REQUIRED NFT" value={requiredNftSymbol} subText={requiredNftName} />
             <SummaryCard w="14%" title="TOKEN PRICE" value={tokenPrice} subText={paymentTokenSymbol} />
         </HStack>

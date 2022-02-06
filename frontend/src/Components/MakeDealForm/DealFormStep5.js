@@ -60,7 +60,6 @@ function DealFormStep5(props) {
       user,
       selectedNetworkChainId,
       dealName, 
-      nftAddress,
       paymentTokenAddress,
       minRoundSize,
       maxRoundSize,
@@ -70,6 +69,7 @@ function DealFormStep5(props) {
       projectWalletAddress,
       projectTokenPrice,
       vestingSchedule,
+      (nftAddress == "") ? undefined: nftAddress,
       (projectTokenAddress == "") ? undefined: projectTokenAddress,
       (syndicateWalletAddress == "") ? undefined: syndicateWalletAddress,
       (syndicationFee == "") ? undefined: syndicationFee
