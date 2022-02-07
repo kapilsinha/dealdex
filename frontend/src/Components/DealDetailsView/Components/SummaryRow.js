@@ -26,7 +26,7 @@ export default function SummaryRow(props) {
 
         const dealDexFees = (dealConfig.claimFundsConfig.dealdexFeeBps + dealConfig.claimTokensConfig.dealdexFeeBps) / 100.0
         const syndicateFees = (dealConfig.claimFundsConfig.managerFeeBps + dealConfig.claimTokensConfig.managerFeeBps) / 100.0
-        fees = `${dealDexFees}% + ${syndicateFees}%`
+        fees = `${dealDexFees + syndicateFees}%`
         deadline = dateFormat(dealConfig.investConfig.deadline, "mm/dd/yyyy HH:MM:ss")
         deadlineTimeZone = dateFormat(dealConfig.investConfig.deadline, "Z")
         minInvestPerNft = paymentToken.getTokens(dealConfig.investConfig.minInvestmentPerInvestor)
@@ -42,7 +42,7 @@ export default function SummaryRow(props) {
 
     return(
         <HStack w="full" py="20px" spacing={5}>
-            <SummaryCard w="17%" title="FEES" value={fees} subText="Dealdex + syndicate fee" />
+            <SummaryCard w="17%" title="FEES" value={fees} subText="Total fees" />
             <SummaryCard w="22%" title="INVESTMENT DEADLINE" value={deadline} subText={deadlineTimeZone} />
             <SummaryCard w="18%" 
                 title={dealConfig ? (dealConfig.investConfig.gateToken ? "INVESTMENT PER NFT" : "INVESTMENT PER WALLET") :"INVESTMENT PER -"} 

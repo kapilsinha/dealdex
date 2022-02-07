@@ -8,16 +8,19 @@ export default function SubscribedInvestorsCard(props) {
 
     var nfts = []
     var investments = []
-
+    var addresses = []
 
     if (subscribedInvestors && dealConfig) {
         console.log(subscribedInvestors)
         const paymentToken = dealConfig.exchangeRate.paymentToken
         nfts = subscribedInvestors._investmentKeys.map(investmentKey => investmentKey.id.toNumber())
+        addresses = subscribedInvestors._investmentKeys.map(investmentKey => investmentKey.addr)
         investments = subscribedInvestors._investments.map((tokenBits) => {
             return `${paymentToken.getTokens(tokenBits)} ${paymentToken.symbol}`
         })
     }
+
+    const gateToken = dealConfig ? dealConfig.investConfig.gateToken : undefined
 
     return(
         <Box layerStyle="detailSummaryWrap" w="full" h="full" px="40px">
@@ -28,17 +31,25 @@ export default function SubscribedInvestorsCard(props) {
                 <Table variant="dealDetailProjectTable" size="md">
                 <Thead>
                     <Tr>
-                    <Th>NFT ID</Th>
+                    <Th>{gateToken ? "NFT ID" : "Wallet ID"}</Th>
                     <Th textAlign={"right"}>Investment</Th>
                     </Tr>
                 </Thead>
                 <Tbody>
-                    { nfts.map((nft, index)=> (
-                    <Tr key={index}>
-                        <Td>{nft}</Td>
-                        <Td textAlign={"right"}>{investments[index]}</Td>
-                    </Tr>
-                    ))}
+                    {gateToken ?
+                        nfts.map((nft, index)=> (
+                            <Tr key={index}>
+                                <Td>{nft}</Td>
+                                <Td textAlign={"right"}>{investments[index]}</Td>
+                            </Tr>
+                        ))
+                        : addresses.map((address, index)=> (
+                            <Tr key={index}>
+                                <Td>{address}</Td>
+                                <Td textAlign={"right"}>{investments[index]}</Td>
+                            </Tr>
+                        ))
+                    }
                 </Tbody>
                 </Table>
             </Box>

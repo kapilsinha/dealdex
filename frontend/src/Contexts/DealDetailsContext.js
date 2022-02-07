@@ -32,6 +32,7 @@ export const DealDetailsProvider = ({ children }) => {
     const [dealIsLocked, setDealIsLocked] = useState(undefined)
     const [userIsProject, setUserIsProject] = useState(undefined)
     const [userIsManager, setUserIsManager] = useState(undefined)
+    const [investedWallets, setInvestedWallets] = useState([])
 
     useEffect(() => {
         async function fetchUserData() {
@@ -60,8 +61,14 @@ export const DealDetailsProvider = ({ children }) => {
                 
 
                 const nftsUsedForInvestment = []
+                const walletsUsedForInvestment = []
                 for (const [i, investmentKey] of subscribedInvestors._investmentKeys.entries() ) {
                     const primaryKey = `${investmentKey.addr.toLowerCase()}_${investmentKey.id.toNumber()}`
+
+                    if (investmentKey.addr.toLowerCase() == currentUser.getAddress().toLowerCase()) {
+                        walletsUsedForInvestment.push({wallet: investmentKey.addr, investment: subscribedInvestors._investments[i]})
+                    }
+
                     const investedNft = nftMap.get(primaryKey)
                     if (investedNft) {
                         const investment = subscribedInvestors._investments[i]
@@ -71,6 +78,7 @@ export const DealDetailsProvider = ({ children }) => {
                 }
                 setValidNfts(Array.from(nftMap.values()))
                 setInvestedNfts(nftsUsedForInvestment)
+                setInvestedWallets(walletsUsedForInvestment)
 
             }
         }
@@ -83,6 +91,7 @@ export const DealDetailsProvider = ({ children }) => {
             const raised = await SmartContractService.fetchDealTotalInvestmentReceived(dealAddress, selectedNetworkChainId)
             const subscribed = await SmartContractService.fetchSubscribedInvestors(dealAddress, selectedNetworkChainId)
             
+            console.log(subscribed)
 
             setSubscribedInvestors(subscribed)
             setDealIsLocked(isLocked)
@@ -116,7 +125,8 @@ export const DealDetailsProvider = ({ children }) => {
         subscribedInvestors, 
         dealIsLocked,
         userIsProject,
-        userIsManager
+        userIsManager,
+        investedWallets
     }}>
         {children}
     </DealDetailsContext.Provider>

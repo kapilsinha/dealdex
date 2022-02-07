@@ -32,7 +32,7 @@ function ClaimFunds(props) {
     const {dealConfig, dealMetadata} = useContext(DealDetailsContext)
     const {selectedNetworkChainId} = useContext(NetworkContext)
     const {user} = useMoralis()
-    const {toast} = useToast()
+    const toast = useToast()
 
     const [availableFundsDisplay, setAvailableFundsDisplay] = useState("")
     const [symbol, setSymbol] = useState("")

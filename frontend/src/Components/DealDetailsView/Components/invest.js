@@ -71,7 +71,13 @@ function Invest(props) {
         }
     }
 
-    const buttonIsEnabled = dealMetadata && dealConfig && validNfts && investAmt && user && (dealConfig.investConfig.gateToken ? (nftId !== undefined) : true)
+    var buttonIsEnabled = dealMetadata && dealConfig && validNfts && user && (investAmt > 0)
+
+    if (buttonIsEnabled) {
+        console.log(Boolean(buttonIsEnabled))
+        buttonIsEnabled = (dealConfig.investConfig.gateToken ? (nftId !== undefined) : true)
+    }
+
     if (dealConfig) {
         const paymentToken = dealConfig.exchangeRate.paymentToken
         minInvestPerNft = Number(paymentToken.getTokens(dealConfig.investConfig.minInvestmentPerInvestor))

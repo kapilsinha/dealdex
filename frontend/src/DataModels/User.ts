@@ -118,7 +118,10 @@ export default class NetworkUser extends Moralis.Object {
         return nftMetadata
     }
 
-    async getNftsForDeal(nftAddress: string, chainId: number) {
+    async getNftsForDeal(nftAddress?: string, chainId?: number) {
+        if (!nftAddress) {
+            return new Map<string, any>()
+        }
         const options = { chain: "testnet", address: this.getAddress() };
         // @ts-ignore
         const result = await Moralis.Web3API.account.getNFTs(options)
@@ -127,7 +130,8 @@ export default class NetworkUser extends Moralis.Object {
             return new Map<string, any>()
         } 
         const resultFilteredByNftAddress = result.result.filter((nft) => {
-
+            console.log(nft.token_address)
+            console.log(nftAddress)
             return (nft.token_address.toLowerCase() == nftAddress.toLowerCase())
         })
 

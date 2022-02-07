@@ -23,7 +23,7 @@ function MyInvestment(props) {
     
     const {user} = useMoralis()
     const toast = useToast();
-    const {investedNfts, dealConfig, dealIsLocked, dealMetadata} = useContext(DealDetailsContext)
+    const {investedNfts, investedWallets, dealConfig, dealIsLocked, dealMetadata} = useContext(DealDetailsContext)
 
     const paymentToken = dealConfig ? dealConfig.exchangeRate.paymentToken: undefined
     
@@ -73,24 +73,28 @@ function MyInvestment(props) {
         }
     }
 
+    const gateToken = dealConfig.investConfig.gateToken
+
     return (
         <VStack w="full" spacing={3} alignItems="flex-start">
             {paymentToken && <HStack w="full" py="10px" spacing={5}>
                 <Table variant='dealDetailProjectTable' size='md'>
                     <Thead>
                         <Tr>
-                        <Th textAlign="center">NFT</Th>
+                        {gateToken && 
+                            <Th textAlign="center">NFT</Th>
+                        }
                         <Th textAlign="center">Amount Invested</Th>
                         <Th></Th>
                         </Tr>
                     </Thead>
                     <Tbody>
-                        {
+                        { gateToken ?
                             investedNfts.map(investData => {
                                 const {investedNft, investment} = investData
                                 console.log(investData)
                                 const nftId = investedNft.token_id 
-                                const symbol = investedNft.symbol
+                                const symbol = paymentToken.symbol
                                 return (
                                     <Tr key={nftId}>
                                         <Td px={2} textAlign="center">{symbol} #{nftId}</Td>
@@ -107,6 +111,24 @@ function MyInvestment(props) {
                                     </Tr>
                                 )
                             })
+                            :   investedWallets.map(investData => {
+                                    const {wallet, investment} = investData
+                                    const symbol = paymentToken.symbol
+                                    return (
+                                        <Tr key={wallet}>
+                                            <Td px={2} textAlign="center">{paymentToken.getTokens(investment)} {symbol}</Td>
+                                            <Td px={1} py={0}>{dealIsLocked !== undefined &&
+                                                (dealIsLocked ? 
+                                                    <Button variant="dealDetailTable" onClick={() => claimTokens(0)} isDisabled={!buttonIsEnabled}>
+                                                        Claim tokens
+                                                    </Button> :
+                                                    <Button variant="dealDetailTable" onClick={() => claimRefund(0)} isDisabled={!buttonIsEnabled}>
+                                                        Refund
+                                                    </Button>)
+                                            }</Td>
+                                        </Tr>
+                                    )
+                                })
                         }
                     </Tbody>
                 </Table>
