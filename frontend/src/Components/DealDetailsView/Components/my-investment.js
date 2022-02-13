@@ -94,7 +94,7 @@ function MyInvestment(props) {
                                 const {investedNft, investment} = investData
                                 console.log(investData)
                                 const nftId = investedNft.token_id 
-                                const symbol = paymentToken.symbol
+                                const symbol = investedNft.symbol
                                 return (
                                     <Tr key={nftId}>
                                         <Td px={2} textAlign="center">{symbol} #{nftId}</Td>

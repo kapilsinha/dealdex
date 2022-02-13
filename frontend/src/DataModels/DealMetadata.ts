@@ -43,6 +43,15 @@ export default class DealMetadata extends Moralis.Object {
         return this.get("address")
     }
 
+    getVestingDescription(): string {
+        return this.get("vestingDescription")
+    }
+
+    async updateVestingDescription(newVestingDescription: string) {
+        this.set("vestingDescription", newVestingDescription)
+        await this.save()
+    }
+
     // TODO: I imagine this is created in the backend and so this can be removed
     static createDeal(
         name: string, 

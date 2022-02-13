@@ -1,37 +1,50 @@
 import { useState, useEffect, useContext } from "react";
-import { Button, Container, Flex, FormControl, FormLabel, Heading, Table, Tbody, Td, Text, Th, Thead, Tr, Box, HStack, Grid, GridItem, VStack } from "@chakra-ui/react";
+import { Button, Center, Flex, FormControl, FormLabel, Heading, Table, Tbody, Td, Text, Th, Thead, Tr, Box, HStack, Grid, GridItem, VStack } from "@chakra-ui/react";
 import dateFormat from "dateformat"
 import {DealDetailsContext} from "../../../Contexts/DealDetailsContext"
-
+import EditVestingModal from "./EditVestingModal"
 
 export default function VestingScheduleCard(props) {
 
-    const {userIsProject} = useContext(DealDetailsContext)
+    const {userIsProject, dealMetadata} = useContext(DealDetailsContext)
+
+    const dealMetadataIsLoading = dealMetadata === undefined
+
+    var vestingDescription = undefined
+    if (dealMetadata) {
+        vestingDescription = dealMetadata.getVestingDescription()
+    }
 
     return(
         <Box layerStyle="detailSummaryWrap" w="54%" h="250px" px="40px">
             <Heading size="md" py="3px">
                 Vesting
             </Heading>
-            <StepPercent percent={0} />
+            {!dealMetadataIsLoading &&
+                (vestingDescription ? <VestingDescription description={vestingDescription} /> : <StepPercent />)
+            }
+            
             <HStack mt={50} w="full" justify="center">
                 {userIsProject && 
-                    <Button variant="dealDetailTable" size="lg">
-                        Edit Vesting
-                    </Button>
+                    // <Button variant="dealDetailTable" size="lg">
+                    //     Edit Vesting
+                    // </Button>
+                    <EditVestingModal />
                 }
             </HStack>
         </Box>
     )
 }
 
-const steps = [
-    { label: "25%", description: 1646406000 },
-    { label: "50%", description: 1649084400 },
-    { label: "70%", description: 1651676400 },
-    { label: "100%", description: 1654354800 },
-]
-
+function VestingDescription(props) {
+    const description = props.description
+    return (
+        <Center h='50px'>
+            <Text>{description}</Text>
+        </Center>
+        
+    )
+}
 
 function StepPercent(props) {
     const {dealConfig} = useContext(DealDetailsContext)

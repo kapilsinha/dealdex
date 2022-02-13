@@ -23,7 +23,7 @@ import  {useMoralis} from "react-moralis"
 import {ExchangeRate, DealToken} from "../../../DataModels/DealConfig"
 
 
-export default function UpdateTokenModal(props) {
+export default function InvestModal(props) {
 
     const {dealConfig, dealMetadata} = useContext(DealDetailsContext)
     const {selectedNetworkChainId} = useContext(NetworkContext)
@@ -93,7 +93,7 @@ export default function UpdateTokenModal(props) {
         <>
             <Button variant="dealDetailTable" onClick={() => {
                 onOpen()
-            }}>Update</Button>
+            }}>Invest</Button>
 
 
             <Modal
