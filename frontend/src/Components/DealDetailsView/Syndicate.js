@@ -8,6 +8,7 @@ import FundingAmountCard from "./Components/FundingAmountCard";
 import SubscribedInvestorsCard from "./Components/SubscribedInvestorsCard";
 import {DealDetailsContext} from "../../Contexts/DealDetailsContext"
 import ClaimFundsCard from "./Components/ClaimFundsCard";
+import DealDescriptionCard from "./Components/DealDescriptionCard"
 
 function DealDetailsViewProject(props) {
   const {dealMetadata, dealConfig, userIsProject, userIsManager} = useContext(DealDetailsContext)  
@@ -51,12 +52,13 @@ function DealDetailsViewProject(props) {
             </HStack>
           </VStack>
           <VStack w="full" spacing={3} alignItems="flex-start">
-            <HStack w="full" py="10px" spacing={5}>
-              {userIsManager && 
-                <SubscribedInvestorsCard />
-              }
+              <DealDescriptionCard />
+              <>
+                {userIsManager && 
+                  <SubscribedInvestorsCard />
+                }
+              </>
               
-            </HStack>
           </VStack>
         </VStack>
       </Flex>

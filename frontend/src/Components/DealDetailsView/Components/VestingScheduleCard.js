@@ -21,10 +21,12 @@ export default function VestingScheduleCard(props) {
                 Vesting
             </Heading>
             {!dealMetadataIsLoading &&
-                (vestingDescription ? <VestingDescription description={vestingDescription} /> : <StepPercent />)
+                <Box layerStyle="detailSummaryWrap" w="100%" my="20px">
+                    {vestingDescription ? <VestingDescription description={vestingDescription} /> : <StepPercent />}
+                </Box>
             }
             
-            <HStack mt={50} w="full" justify="center">
+            <HStack mt={0} w="full" justify="center">
                 {userIsProject && 
                     // <Button variant="dealDetailTable" size="lg">
                     //     Edit Vesting
@@ -39,10 +41,7 @@ export default function VestingScheduleCard(props) {
 function VestingDescription(props) {
     const description = props.description
     return (
-        <Center h='50px'>
-            <Text>{description}</Text>
-        </Center>
-        
+        <Text>{description}</Text>        
     )
 }
 
