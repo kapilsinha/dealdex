@@ -18,13 +18,15 @@ function DealFormStep4(props) {
     paymentTokenAddress,
     syndicateWalletAddress,
     setSyndicateWalletAddress,
-    syndicationFee,
-    setSyndicationFee
+    syndicationFeePayment,
+    setSyndicationFeePayment,
+    syndicationFeeProject,
+    setSyndicationFeeProject
   } = useContext(MakeDealFormContext)
 
   function inputsAreValid() {
-    return (syndicateWalletAddress == "" && syndicationFee == "" 
-      || getValidatedAddress(syndicateWalletAddress) && syndicationFee != "")
+    return (syndicateWalletAddress == "" && syndicationFeeProject == "" && syndicationFeePayment == ""
+      || getValidatedAddress(syndicateWalletAddress) && syndicationFeeProject != "" && syndicationFeePayment != "")
   } 
 
   
@@ -61,19 +63,34 @@ function DealFormStep4(props) {
             />
         </HStack>
         <HStack w="65%" h="full" pt={5} spacing={10} alignItems="flex-start">
-        <MakeDealFormNumberItem 
-            title="Syndication Fee"
-            colSpan={2}
-            onChange = {value => setSyndicationFee(value)}
-            placeholder = "0.0"
-            value = {syndicationFee}
-            width="50%"
-            maxvalue={100}
-            appendChar = "%"
-            disabled = {!getValidatedAddress(syndicateWalletAddress)}
-            precision = {2} // We are using Bps for percentages 
-            helperText = "Percentage of the project token you will receive"
-        />
+          <MakeDealFormNumberItem 
+              title="Project Token Syndication Fee"
+              colSpan={2}
+              onChange = {value => setSyndicationFeeProject(value)}
+              placeholder = "0.0"
+              value = {syndicationFeeProject}
+              width="50%"
+              maxvalue={100}
+              appendChar = "%"
+              disabled = {!getValidatedAddress(syndicateWalletAddress)}
+              precision = {2} // We are using Bps for percentages 
+              helperText = "Percentage of the project token you will receive"
+          />
+        </HStack>
+        <HStack w="65%" h="full" pt={5} spacing={10} alignItems="flex-start">
+          <MakeDealFormNumberItem 
+              title="Payment Token Syndication Fee"
+              colSpan={2}
+              onChange = {value => setSyndicationFeePayment(value)}
+              placeholder = "0.0"
+              value = {syndicationFeePayment}
+              width="50%"
+              maxvalue={100}
+              appendChar = "%"
+              disabled = {!getValidatedAddress(syndicateWalletAddress)}
+              precision = {2} // We are using Bps for percentages 
+              helperText = "Percentage of the payment token you will receive"
+          />
         </HStack>
         <HStack w="full" h="full" pt={40} spacing={10} alignItems="flex-start">
         <Button variant="dealformBack" size="lg" onClick={decrementStep}>

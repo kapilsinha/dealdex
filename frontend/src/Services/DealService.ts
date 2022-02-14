@@ -30,7 +30,8 @@ export default class DealService {
                             nftAddress?: string,
                             projectTokenAddress?: string,
                             syndicateWalletAddress?: string,
-                            syndicationFee?: string) {
+                            syndicationFeeProject?: string,
+                            syndicationFeePayment?: string) {
         let signer = await SmartContractService.getSignerForUser(user)
 
         let dealFactoryAddress = await DatabaseService.getDealFactoryAddress()
@@ -80,20 +81,25 @@ export default class DealService {
 
         let refundConfig = new RefundConfig(true)   // Allow refunds
 
-        var managerFeeBps = 0
-        if (syndicationFee) {
-            managerFeeBps = Number(syndicationFee) * 100    // Convert to basis points
+        var managerFeeProjectBps = 0
+        if (syndicationFeeProject) {
+            managerFeeProjectBps = Number(syndicationFeeProject) * 100    // Convert to basis points
         }
 
         let claimTokensConfig = new ClaimTokensConfig(
             1,  // DealDex fee is overridden in smart contract
             projectTokenAddress,
-            managerFeeBps
+            managerFeeProjectBps  // Syndication fee in project tokens
         )
+
+        var managerFeePaymentBps = 0
+        if (syndicationFeePayment) {
+            managerFeePaymentBps = Number(syndicationFeePayment) * 100    // Convert to basis points
+        }
 
         let claimFundsConfig = new ClaimFundsConfig(
             1,  // DealDex fee is overridden in smart contract
-            0   // Currently the syndication fee is only in project tokens, not payment tokens
+            managerFeePaymentBps  // Syndication fee in payment tokens
         )
 
         let vestingConfig = new VestingSchedule(

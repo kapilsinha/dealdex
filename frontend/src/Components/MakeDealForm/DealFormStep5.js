@@ -35,7 +35,8 @@ function DealFormStep5(props) {
     projectTokenAddress,
     vestingSchedule,
     syndicateWalletAddress,
-    syndicationFee,
+    syndicationFeeProject,
+    syndicationFeePayment
   } = useContext(MakeDealFormContext)
   const {selectedNetworkChainId} = useContext(NetworkContext)
 
@@ -72,7 +73,8 @@ function DealFormStep5(props) {
       (nftAddress == "") ? undefined: nftAddress,
       (projectTokenAddress == "") ? undefined: projectTokenAddress,
       (syndicateWalletAddress == "") ? undefined: syndicateWalletAddress,
-      (syndicationFee == "") ? undefined: syndicationFee
+      (syndicationFeeProject == "") ? undefined: syndicationFeeProject,
+      (syndicationFeePayment == "") ? undefined: syndicationFeePayment
     )
     setIsLoading(false)
     if (result.error) {
@@ -109,7 +111,7 @@ function DealFormStep5(props) {
           roundSizeDisplay: payment ? `${minRoundSize} ${payment.symbol} - ${maxRoundSize} ${payment.symbol}`: "-",
           syndicateWalletDisplay: syndicateWalletAddress,
           investorLimitDisplay: payment ? `${minInvestPerInvestor} ${payment.symbol} - ${maxInvestPerInvestor} ${payment.symbol}`: "-",
-          syndicationFeeDisplay: `${syndicationFee}%`,
+          syndicationFeeDisplay: payment ? `${syndicationFeePayment}% ${payment.symbol}, ${syndicationFeeProject}% Project Token`: "-",
           investDeadlineDisplay: (new Date(investDeadline)).toString(),
           dealdexFeeDisplay: payment ? `2.5% ${payment.symbol}`: "-",
           projectWalletDisplay: projectWalletAddress

@@ -23,7 +23,8 @@ export const MakeDealFormProvider = ({ children }) => {
     const [projectTokenAddress, setProjectTokenAddress] = useSessionStorage("makeDealForm.projectTokenAddress", "");
     const [vestingSchedule, setVestingSchedule] = useSessionStorage("makeDealForm.vestingSchedule", []);
     const [syndicateWalletAddress, setSyndicateWalletAddress] = useSessionStorage("makeDealForm.syndicateWalletAddress", "");
-    const [syndicationFee, setSyndicationFee] = useSessionStorage("makeDealForm.syndicationFee", "");
+    const [syndicationFeeProject, setSyndicationFeeProject] = useSessionStorage("makeDealForm.syndicationFeeProject", "");
+    const [syndicationFeePayment, setSyndicationFeePayment] = useSessionStorage("makeDealForm.syndicationFeePayment", "");
 
     const incrementStep = () => {
         if (step < 5) {
@@ -70,8 +71,10 @@ export const MakeDealFormProvider = ({ children }) => {
                                             setVestingSchedule,
                                             syndicateWalletAddress,
                                             setSyndicateWalletAddress,
-                                            syndicationFee,
-                                            setSyndicationFee
+                                            syndicationFeePayment,
+                                            setSyndicationFeePayment,
+                                            syndicationFeeProject,
+                                            setSyndicationFeeProject
                                         }}>
         {children}
     </MakeDealFormContext.Provider>
