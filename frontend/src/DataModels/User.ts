@@ -31,8 +31,13 @@ export default class NetworkUser extends Moralis.Object {
 
     async getContactInfo(): Promise<ContactInfo | null> {
         let contactInfo = this.get("contactInfo")
-        await contactInfo.fetch()
-        return contactInfo
+        if (contactInfo) {
+            await contactInfo.fetch()
+            return contactInfo
+        } else {
+            return null
+        }
+        
     }
 
     static createUser(
