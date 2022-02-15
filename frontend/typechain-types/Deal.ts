@@ -382,7 +382,13 @@ export interface Deal extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    claimFunds(
+    "claimFunds()"(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "claimFunds(address,address)"(
+      projectOverride: string,
+      managerOverride: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -516,7 +522,13 @@ export interface Deal extends BaseContract {
     totalReceivedInvestment(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
-  claimFunds(
+  "claimFunds()"(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "claimFunds(address,address)"(
+    projectOverride: string,
+    managerOverride: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -648,7 +660,13 @@ export interface Deal extends BaseContract {
   totalReceivedInvestment(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
-    claimFunds(overrides?: CallOverrides): Promise<void>;
+    "claimFunds()"(overrides?: CallOverrides): Promise<void>;
+
+    "claimFunds(address,address)"(
+      projectOverride: string,
+      managerOverride: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     claimRefund(id: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
@@ -785,7 +803,13 @@ export interface Deal extends BaseContract {
   };
 
   estimateGas: {
-    claimFunds(
+    "claimFunds()"(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "claimFunds(address,address)"(
+      projectOverride: string,
+      managerOverride: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -882,7 +906,13 @@ export interface Deal extends BaseContract {
   };
 
   populateTransaction: {
-    claimFunds(
+    "claimFunds()"(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "claimFunds(address,address)"(
+      projectOverride: string,
+      managerOverride: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

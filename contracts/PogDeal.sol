@@ -107,10 +107,11 @@ contract Deal is ILockableDeal {
         emit InvestUpdate(msg.sender, id, amount, totalReceivedInvestment);
     }
 
-    // The project can claim all funds as long as the deadline has passed and the deal is valid
-    function claimFunds() external override {
+    function claimFunds(address projectOverride, address managerOverride) public {
         require(msg.sender == config.participantAddresses.project, "Only the project can claim the funds");
         require(isValidLockStatus(config.fundsConfig.lockConstraint), string(abi.encodePacked("Cannot claim funds because the deal is ", (!isLockedFlag ? "un" : ""), "locked")));
+        require(managerOverride == config.participantAddresses.manager || config.participantAddresses.project == config.participantAddresses.manager,
+            "The syndicate manager must receive fees or else also be the project");
 
         IERC20 investmentToken = IERC20(config.investConfig.investmentTokenAddress);
 
@@ -131,13 +132,18 @@ contract Deal is ILockableDeal {
         uint256 pendingManagerFee = managerFee - receivedManagerFeeFunds;
         if (pendingManagerFee > 0) {
             receivedManagerFeeFunds += pendingManagerFee;
-            bool managerFeeSuccess = investmentToken.transfer(config.participantAddresses.manager, pendingManagerFee);
+            bool managerFeeSuccess = investmentToken.transfer(managerOverride, pendingManagerFee);
             require(managerFeeSuccess, "Investment fee to syndicate manager failed.");
         }
 
         require(investmentToken.balanceOf(address(this)) == balance - pendingDealdexFee - pendingManagerFee, "Remaining balance does match original balance minus fees");
-        bool transferSuccess = investmentToken.transfer(config.participantAddresses.project, balance - pendingDealdexFee - pendingManagerFee);
+        bool transferSuccess = investmentToken.transfer(projectOverride, balance - pendingDealdexFee - pendingManagerFee);
         require(transferSuccess, "Failed to transfer funds to the investor.");
+    }
+
+    // The project can claim all funds as long as the deadline has passed and the deal is valid
+    function claimFunds() external override {
+        claimFunds(config.participantAddresses.project, config.participantAddresses.manager);
     }
 
     // Investors can get a refund as long as the investment deadline has not passed or if the deal is invalid.

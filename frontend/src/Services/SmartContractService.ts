@@ -53,6 +53,8 @@ export default class SmartContractService {
         return txn
     }
 
+    // TODO: Perhaps remove this function and the corresponding one from the smart contract down the line.
+    // Keeping it in for now since we just migrated to the override version
     static async claimFunds(dealContractAddress: string, user: Moralis.User) {
         const signer = await SmartContractService.getSignerForUser(user)
 
@@ -62,6 +64,18 @@ export default class SmartContractService {
 
         const contract = new ethers.Contract(dealContractAddress, Deal.abi, signer)
         let txn = await makeSafe(contract.claimFunds)();
+        return txn
+    }
+
+    static async claimFundsWithOverride(dealContractAddress: string, projectOverrideAddress: string, managerOverrideAddress: string, user: Moralis.User) {
+        const signer = await SmartContractService.getSignerForUser(user)
+
+        if (!signer) {
+            return {error: "Invalid signer"}
+        }
+
+        const contract = new ethers.Contract(dealContractAddress, Deal.abi, signer)
+        let txn = await makeSafe(contract.claimFunds)(projectOverrideAddress, managerOverrideAddress);
         return txn
     }
 

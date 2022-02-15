@@ -1,9 +1,10 @@
 import { useState, useEffect, useContext } from "react";
-import { Button,  Heading,  VStack, Box, HStack, useToast, Tabs, TabList, TabPanels, Tab, TabPanel, Select } from "@chakra-ui/react";
+import { Button,  Heading,  VStack, Box, HStack, useToast, Tabs, TabList, TabPanels, Tab, TabPanel, Table, Tbody, Td, Tr, Select } from "@chakra-ui/react";
 import DealDexNumberForm from "../../../ReusableComponents/DealDexNumberForm"
 import {DealDetailsContext} from "../../../Contexts/DealDetailsContext"
 import {NetworkContext} from "../../../Contexts/NetworkContext"
 import SmartContractService from "../../../Services/SmartContractService"
+import UpdateProjectManagerAddressModal from "./UpdateProjectManagerAddressModal"
 import {useMoralis} from "react-moralis"
 
 export default function ClaimFundsCard(props) {
@@ -37,7 +38,8 @@ function ClaimFunds(props) {
     const [availableFundsDisplay, setAvailableFundsDisplay] = useState("")
     const [symbol, setSymbol] = useState("")
 
-    
+    const [projectAddress, setProjectAddress] = useState("")
+    const [managerAddress, setManagerAddress] = useState("")
 
     useEffect(() => {
         async function initializeData() {
@@ -53,6 +55,8 @@ function ClaimFunds(props) {
                 setAvailableFundsDisplay(paymentToken.getTokens(availableFundsInContract))
                 console.log(availableFundsDisplay)
             }
+            setProjectAddress(dealMetadata.getProject().getAddress())
+            setManagerAddress(dealMetadata.getManager().getAddress())
         }
 
         if (dealConfig && dealMetadata) {
@@ -61,14 +65,23 @@ function ClaimFunds(props) {
 
     }, [dealConfig, dealMetadata])
 
-    
+
+    function getValidatedAddress(address) {
+        return SmartContractService.getChecksumAddress(address)
+    }
+
+    // added this because addresses are damn long and force the table to be wide
+    function getValidatedAddressTruncated(address) {
+        return address === "" ? "" : SmartContractService.getChecksumAddress(address).slice(0,10) + "..."
+    }
 
     function buttonIsEnabled() {
         return availableFundsDisplay && Number(availableFundsDisplay) > 0 && dealMetadata && user
     }
 
     async function claimFunds() {
-        const result = await SmartContractService.claimFunds(dealMetadata.getAddress(), user)
+        const result = await SmartContractService.claimFundsWithOverride(
+            dealMetadata.getAddress(), getValidatedAddress(projectAddress), getValidatedAddress(managerAddress), user)
 
         if (result.error) {
             toast({
@@ -89,6 +102,38 @@ function ClaimFunds(props) {
 
     return(
         <VStack mb={5}>
+            <Table variant="dealDetailProjectTable" size="md">
+                <Tbody>
+                    <Tr>
+                        <Td>Project Address</Td>
+                        <Td textAlign={"right"}>
+                            {dealConfig.participantAddresses.projectAddress == dealConfig.participantAddresses.managerAddress && 
+                                <UpdateProjectManagerAddressModal
+                                    projectAddress={getValidatedAddress(projectAddress)}
+                                    managerAddress={getValidatedAddress(managerAddress)} 
+                                    setProjectAddress={setProjectAddress}
+                                    setManagerAddress={setManagerAddress}
+                                />
+                            }
+                        </Td>
+                        <Td textAlign={"right"}>{getValidatedAddressTruncated(projectAddress)}</Td>
+                    </Tr>
+                    <Tr>
+                        <Td>Manager Address</Td>
+                        <Td textAlign={"right"}>
+                            {dealConfig.participantAddresses.projectAddress == dealConfig.participantAddresses.managerAddress && 
+                                <UpdateProjectManagerAddressModal
+                                    projectAddress={getValidatedAddress(projectAddress)}
+                                    managerAddress={getValidatedAddress(managerAddress)} 
+                                    setProjectAddress={setProjectAddress}
+                                    setManagerAddress={setManagerAddress}
+                                />
+                            }
+                        </Td>
+                        <Td textAlign={"right"}>{getValidatedAddressTruncated(managerAddress)}</Td>
+                    </Tr>
+                </Tbody>
+            </Table>
             <HStack pb={3} w="full">
                 <Heading size="sm" py="3px" w="full" textAlign="left">
                     Available funds:

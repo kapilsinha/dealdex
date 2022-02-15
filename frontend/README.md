@@ -75,3 +75,4 @@ firebase hosting:channel:deploy CHANNEL_ID // Deploy to a preview url
 ## Troubleshooting
 Localhost MetaMask gets screwed up when you restart yor Hardhat node:
 Go to your metamask wallet -> Settings -> Advanced -> Reset account
+If you see errors, you need to set the module to 'commonjs'; we need one version for compiling the contract and a different one to run the UI :/
