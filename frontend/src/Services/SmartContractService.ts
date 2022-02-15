@@ -5,6 +5,7 @@
 import DealFactory from '../artifacts/contracts/PogDeal.sol/DealFactory.json'
 import Deal from '../artifacts/contracts/PogDeal.sol/Deal.json'
 import ERC20_ABI from "../ContractABIs/ERC20.json"
+import ERC721_ABI from "../ContractABIs/ERC721.json"
 import NetworkUser from "../DataModels/User"
 import {ethers, BigNumber, Signer, providers } from 'ethers';
 
@@ -217,6 +218,22 @@ export default class SmartContractService {
         return balance
     }
 
+    static async getERC20Allowance(erc20TokenAddress: string, dealAddress: string, walletAddress: string, chainId: number): Promise<BigNumber | undefined> {
+        if (erc20TokenAddress === ethers.constants.AddressZero) {
+            return undefined
+        } 
+
+        const provider = await getProviderForChainId(chainId)
+        
+        if (!provider) {
+            return undefined
+        }
+
+        const tokenContract = new ethers.Contract(erc20TokenAddress, ERC20_ABI, provider)
+        const allowance = await tokenContract.allowance(walletAddress, dealAddress)
+        return allowance
+    }
+
     static async getERC20Metadata(erc20TokenAddress: string, chainId: number) {
         if (erc20TokenAddress === ethers.constants.AddressZero) {
             console.log("token address is AddressZero")
@@ -245,12 +262,27 @@ export default class SmartContractService {
         const provider = await getProviderForChainId(chainId)
 
         try {
-            const tokenContract = new ethers.Contract(nftAddress, ERC20_ABI, provider)
+            const tokenContract = new ethers.Contract(nftAddress, ERC721_ABI, provider)
             const name = await tokenContract.name()
             const symbol = await tokenContract.symbol()
             return {name, symbol}
         } catch(err) {
             return undefined
+        }
+    }
+
+    static async getNFTOwnerAddress(nftAddress: string, nftId: BigNumber, chainId: number) {
+        if (nftAddress === ethers.constants.AddressZero || nftAddress === undefined) {
+            return null
+        }
+
+        const provider = await getProviderForChainId(chainId)
+
+        try {
+            const tokenContract = new ethers.Contract(nftAddress, ERC721_ABI, provider)
+            return await tokenContract.ownerOf(nftId)
+        } catch(err) {
+            return null
         }
     }
 
@@ -285,11 +317,8 @@ export default class SmartContractService {
         } else {
             console.log("err2")
             return undefined
-        }
-
-        
+        }   
     }
-
 }
 
 

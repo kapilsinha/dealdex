@@ -9,6 +9,7 @@ import DealMetadata from './DealMetadata';
 import SmartContractService from '../Services/SmartContractService';
 import Moralis from "../Services/MoralisService";
 import NFTMetadata from "./NFTMetadata"
+import ContactInfo from "./ContactInfo"
 
 // Moralis.User is garbage that only the actual user can access...
 export default class NetworkUser extends Moralis.Object {
@@ -27,6 +28,13 @@ export default class NetworkUser extends Moralis.Object {
     getAddress(): string {
         return this.get("address")
     }
+
+    async getContactInfo(): Promise<ContactInfo | null> {
+        let contactInfo = this.get("contactInfo")
+        await contactInfo.fetch()
+        return contactInfo
+    }
+
     static createUser(
         address: string, 
         username: string
@@ -44,11 +52,18 @@ export default class NetworkUser extends Moralis.Object {
         // user.set("dealAndInvestments", [])
         user.set("pendingDealsCreated", [])
         user.set("isVerified", false)
+        user.set("contactInfo", ContactInfo.createContactInfo())
         return user
     }
 
     async refresh() {
         await this.fetch();
+    }
+
+    async updateContactInfo(newContactInfo: ContactInfo) {
+        this.set("contactInfo", newContactInfo)
+        await this.save()
+        await this.refresh()
     }
 
     async updateName(newName: string) {
@@ -130,8 +145,6 @@ export default class NetworkUser extends Moralis.Object {
             return new Map<string, any>()
         } 
         const resultFilteredByNftAddress = result.result.filter((nft) => {
-            console.log(nft.token_address)
-            console.log(nftAddress)
             return (nft.token_address.toLowerCase() == nftAddress.toLowerCase())
         })
 

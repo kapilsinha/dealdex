@@ -15,12 +15,12 @@ import {
     useToast
 } from "@chakra-ui/react";
 import DealDexTextForm from "../../../ReusableComponents/DealDexTextForm"
-import DealDexNumberForm from "../../../ReusableComponents/DealDexNumberForm"
 import {DealDetailsContext} from "../../../Contexts/DealDetailsContext"
 import {NetworkContext} from "../../../Contexts/NetworkContext"
+import DatabaseService from "../../../Services/DatabaseService"
 import SmartContractService from "../../../Services/SmartContractService"
 import  {useMoralis} from "react-moralis"
-import {ExchangeRate, DealToken} from "../../../DataModels/DealConfig"
+import ContactInfo from "../../../DataModels/ContactInfo"
 
 
 export default function InvestModal(props) {
@@ -30,71 +30,130 @@ export default function InvestModal(props) {
     const {user} = useMoralis()
     const toast = useToast()
     const { isOpen, onOpen, onClose } = useDisclosure()
-
-    const [projectTokenAddress, setProjectTokenAddress] = useState("")
-    const [projectTokenPrice, setProjectTokenPrice] = useState("")
     const [isLoading, setIsLoading] = useState(false)
 
-    const paymentToken = dealConfig ? dealConfig.exchangeRate.paymentToken : undefined
+    const [startInvestButtonEnabled, setStartInvestButtonEnabled] = useState(false)
+    const [investAmt, setInvestAmt] = useState(0)
+    const [currentUser, setCurrentUser] = useState(null)
+    const [nftId, setNftId] = useState(0)
 
-    const projectTokenMetadata = undefined
-    const projectTokenMetadataIsLoading = true
+    const [email, setEmail] = useState("")
+    const [telegramUsername, setTelegramUsername] = useState("")
+    const [discordUsername, setDiscordUsername] = useState("")
 
-    const paymentTokenMetadata = undefined
+    useEffect(async () => {
+        if (!user) {
+            return
+        }
+        if (!currentUser) {
+            setCurrentUser(await DatabaseService.getUser(user.get("ethAddress")))
+        }
+        if (currentUser) {
+            let contactInfo = await currentUser.getContactInfo()
+            if (contactInfo) {
+                setEmail(contactInfo.getEmail() || "")
+                setTelegramUsername(contactInfo.getTelegramUsername() || "")
+                setDiscordUsername(contactInfo.getDiscordUsername() || "")
+            }
+        }
+        setNftId(props.nftId)
+        setInvestAmt(props.investAmt)
+        setStartInvestButtonEnabled(props.startInvestButtonEnabled)
+    }, [props.investAmt, props.nftId, props.startInvestButtonEnabled])
 
     function buttonIsEnabled() {
-        return projectTokenAddress && projectTokenPrice && dealConfig && dealMetadata && user
+        return dealConfig && dealMetadata && user && (investAmt > 0) && isValidEmail(email)
     }
 
-    async function updateToken() {
-        setIsLoading(true)
+    async function invest() {
+        await updateContactInfo()
+
+        const tokenBitsAmount = dealConfig.exchangeRate.paymentToken.getTokenBits(investAmt)
         const dealAddress = dealMetadata.getAddress()
-        const projectToken = await DealToken.fromContractAddress(projectTokenAddress, selectedNetworkChainId)
-        if (!projectToken) {
-            setIsLoading(false)
-            toast({
-                title: "Invalid project token address",
-                status: "error",
-                isClosable: true,
-                position: "bottom-right",
-            });
+        const paymentTokenAddress = dealConfig.exchangeRate.paymentToken.contractAddress
+
+        const signer = await SmartContractService.getSignerForUser(user)
+        const allowance = await SmartContractService.getERC20Allowance(paymentTokenAddress, dealAddress, signer.getAddress(), selectedNetworkChainId)
+        console.log("Allowance: ", allowance)
+
+        if (allowance < tokenBitsAmount) {
+            await approveAndInvest(dealAddress, paymentTokenAddress, tokenBitsAmount - allowance, user)
+        } else {
+            await investOnly(dealAddress, tokenBitsAmount, user)
         }
-        const exchangeRate = await ExchangeRate.fromDisplayValue(projectTokenPrice, paymentToken, projectToken)
-        if (!exchangeRate) {
-            setIsLoading(false)
+        onClose()
+    }
+
+    async function approveAndInvest(dealAddress, paymentTokenAddress, tokenBitsAmount, user) {
+        const approveTxn = await SmartContractService.investApprove(dealAddress, paymentTokenAddress, tokenBitsAmount, user)
+        if (approveTxn.error) {
             toast({
-                title: "Invalid price",
-                status: "error",
-                isClosable: true,
-                position: "bottom-right",
-            });
-        }
-        const result = await SmartContractService.updateProjectToken(dealAddress, projectTokenAddress, exchangeRate, user) 
-        if (result.error) {
-            toast({
-                title: result.error,
+                title: approveTxn.error,
                 status: "error",
                 isClosable: true,
                 position: "bottom-right",
             });
         } else {
             toast({
-                title: "Successfuly updated project token",
+                title: "You're not done! You have approved your investment, but we have not collected any funds from you. Once your txn is processed (please wait up to a few minutes), we will prompt you to finish your investment",
+                status: "info",
+                isClosable: true,
+                position: "bottom-right",
+                duration: null
+            });
+            // The approval needs to finish before attempting to invest, otherwise investor has "insufficient allowance"
+            await approveTxn.wait();
+            toast.closeAll();
+            await investOnly(dealAddress, tokenBitsAmount, user)
+        }
+    }
+
+    async function investOnly(dealAddress, tokenBitsAmount, user) {
+        let nftIdUsedToInvest = dealConfig.investConfig.gateToken ? nftId : 0
+        const investResult = await SmartContractService.investTransfer(dealAddress, tokenBitsAmount, nftIdUsedToInvest, user)
+        if (investResult.error) {
+            toast({
+                title: investResult.error,
+                status: "error",
+                isClosable: true,
+                position: "bottom-right",
+            });
+        } else {
+            toast({
+                title: "Successfully invested!",
                 status: "success",
                 isClosable: true,
                 position: "bottom-right",
             });
         }
+    }
+
+    async function updateContactInfo() {
+        setIsLoading(true)
+        console.log(currentUser)
+        await currentUser.updateContactInfo(ContactInfo.createContactInfo(email, telegramUsername, discordUsername))
         setIsLoading(false)
-        onClose()
+    }
+
+    function isValidEmail(emailAddress) {
+        return emailAddress && emailAddress.match(
+            /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        ) != null
+    }
+
+    function isValidDiscordUsername(discordUsername) {
+        return discordUsername != ""
+    }
+
+    function isValidTelegramUsername(telegramUsername) {
+        return telegramUsername != ""
     }
 
     return(
         <>
-            <Button variant="dealDetailTable" onClick={() => {
+            <Button variant="dealDetailTable" isDisabled={!startInvestButtonEnabled} onClick={() => {
                 onOpen()
             }}>Invest</Button>
-
 
             <Modal
                 isOpen={isOpen}
@@ -102,40 +161,52 @@ export default function InvestModal(props) {
             >
                 <ModalOverlay />
                 <ModalContent>
-                <ModalHeader>Update Project Token</ModalHeader>
+                <ModalHeader>Invest</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody pb={6}>
                     <DealDexTextForm 
-                        title="Project Token"
+                        title="Email"
                         colSpan={2}
-                        onChange = {e => setProjectTokenAddress(e.target.value)}
-                        placeholder = "ERC-20 Token Contract Address"
-                        value = {projectTokenAddress}
+                        onChange = {e => setEmail(e.target.value)}
+                        value = {email}
                         width="100%"
-                        onBlur = {e => setProjectTokenAddress(e.target.value.trim())}
-                        verified = {(projectTokenMetadata !== undefined)}
-                        isVerifying = {projectTokenMetadataIsLoading}
+                        onBlur = {e => setEmail(e.target.value.trim())}
+                        verified = {isValidEmail(email)}
                         isRequired = {true}
-                        helperText = "The project’s token which will be distributed to investors."
-                        errorText = "Enter a valid ERC-20 token contract address."
+                        helperText = "Your email address, to be used for receipt of investment confirmation."
+                        errorText = "Enter a valid email."
                     />
 
-                    <DealDexNumberForm 
-                        title="Project Token Price"
+                    <DealDexTextForm 
+                        title="Telegram Username"
                         colSpan={2}
-                        onChange = {value => setProjectTokenPrice(value)}
-                        value = {projectTokenPrice}
+                        onChange = {e => setTelegramUsername(e.target.value)}
+                        value = {telegramUsername}
                         width="100%"
-                        appendChar = {paymentToken ? paymentToken.symbol : ""}
-                        isRequired = {true}
-                        verified = {projectTokenPrice != ""}
-                        helperText = "The price of the project’s token."
+                        onBlur = {e => setTelegramUsername(e.target.value.trim())}
+                        verified = {isValidTelegramUsername(telegramUsername)}
+                        isRequired = {false}
+                        helperText = "Your Telegram username"
+                        errorText = "Enter a valid username."
+                    />
+
+                    <DealDexTextForm 
+                        title="Discord Username"
+                        colSpan={2}
+                        onChange = {e => setDiscordUsername(e.target.value)}
+                        value = {discordUsername}
+                        width="100%"
+                        onBlur = {e => setDiscordUsername(e.target.value.trim())}
+                        verified = {isValidDiscordUsername(discordUsername)}
+                        isRequired = {false}
+                        helperText = "Your Discord username"
+                        errorText = "Enter a valid username."
                     />
                 </ModalBody>
 
                 <ModalFooter>
-                    <Button variant="dealDetailTable" isDisabled={!buttonIsEnabled()} onClick={updateToken} isLoading={isLoading}  mr={3}>
-                        Save
+                    <Button variant="dealDetailTable" isDisabled={!buttonIsEnabled()} onClick={invest} isLoading={isLoading}  mr={3}>
+                        Invest
                     </Button>
                     <Button onClick={onClose}>Cancel</Button>
                 </ModalFooter>

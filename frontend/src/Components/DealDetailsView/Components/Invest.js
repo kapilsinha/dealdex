@@ -8,6 +8,8 @@ import DealDexNumberForm from "../../../ReusableComponents/DealDexNumberForm"
 import {DealDetailsContext} from "../../../Contexts/DealDetailsContext"
 import SmartContractService from "../../../Services/SmartContractService"
 import AuthStrings from "../../../Strings/AuthStrings"
+import { NetworkContext } from "../../../Contexts/NetworkContext"
+import InvestModal from "./InvestModal"
 
 
 function Invest(props) {
@@ -21,60 +23,14 @@ function Invest(props) {
     const [nftId, setNftId] = useState(undefined)
     const [fees, setFees] = useState("0")
     const [expectedTokens, setExpectedTokens] = useState(0)
+    const {selectedNetworkChainId} = useContext(NetworkContext)
 
     var minInvestPerNft = 0
     var maxInvestPerNft = 0
 
-
-    async function invest() {
-        const tokenBitsAmount = dealConfig.exchangeRate.paymentToken.getTokenBits(investAmt)
-        const dealAddress = dealMetadata.getAddress()
-        const paymentTokenAddress = dealConfig.exchangeRate.paymentToken.contractAddress
-
-        const approveTxn = await SmartContractService.investApprove(dealAddress, paymentTokenAddress, tokenBitsAmount, user)
-        if (approveTxn.error) {
-            toast({
-                title: approveTxn.error,
-                status: "error",
-                isClosable: true,
-                position: "bottom-right",
-            });
-        } else {
-            toast({
-                title: "You're not done! You have approved your investment, but we have not collected any funds from you. Once your txn is processed (please wait up to a few minutes), we will prompt you to finish your investment",
-                status: "info",
-                isClosable: true,
-                position: "bottom-right",
-                duration: null
-            });
-            // The approval needs to finish before attempting to invest, otherwise investor has "insufficient allowance"
-            await approveTxn.wait();
-
-            let nftIdUsedToInvest = dealConfig.investConfig.gateToken ? nftId : 0
-            const investResult = await SmartContractService.investTransfer(dealAddress, tokenBitsAmount, nftIdUsedToInvest, user)
-            toast.closeAll()
-            if (investResult.error) {
-                toast({
-                    title: investResult.error,
-                    status: "error",
-                    isClosable: true,
-                    position: "bottom-right",
-                });
-            } else {
-                toast({
-                    title: "Successfully invested!",
-                    status: "success",
-                    isClosable: true,
-                    position: "bottom-right",
-                });
-            }
-        }
-    }
-
     var buttonIsEnabled = dealMetadata && dealConfig && validNfts && user && (investAmt > 0)
 
     if (buttonIsEnabled) {
-        console.log(Boolean(buttonIsEnabled))
         buttonIsEnabled = (dealConfig.investConfig.gateToken ? (nftId !== undefined) : true)
     }
 
@@ -141,9 +97,7 @@ function Invest(props) {
             </HStack>
             <Center>
                 {user ? 
-                    <Button variant="dealDetailTable" isDisabled={!buttonIsEnabled} onClick={invest}>
-                        Invest
-                    </Button>
+                    <InvestModal investAmt={investAmt} nftId={nftId} startInvestButtonEnabled={buttonIsEnabled} />
                 :   <Button variant="dealDetailTable" onClick={() => {authenticate({signingMessage: AuthStrings.signingMessage})}} isLoading={isAuthenticating}>
                         Connect Wallet
                     </Button>

@@ -4,7 +4,7 @@ import {useEffect, useState, useContext} from 'react';
 import { Button, Box, FormHelperText, Tabs, TabList, TabPanels, Tab, TabPanel, Center } from "@chakra-ui/react";
 import DealDexNumberForm from "../../../ReusableComponents/DealDexNumberForm"
 import MyInvestment from "./my-investment"
-import Invest from "./invest"
+import Invest from "./Invest"
 
 
 
