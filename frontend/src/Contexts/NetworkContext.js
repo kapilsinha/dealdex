@@ -29,8 +29,7 @@ export const NetworkProvider = ({ children }) => {
     ]
   } else if (appConfig.currentEnvironment == "mainnet") {
     networks = [
-      Network.ethereum(),
-      Network.polygon()
+      Network.bsc()
     ]
   }
 

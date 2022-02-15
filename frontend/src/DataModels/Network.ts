@@ -30,6 +30,10 @@ export default class Network {
         return new Network(137, "Polygon")
     }
 
+    static bsc() {
+        return new Network(56, "BSC")
+    }
+
     static localhost() {
         return new Network(1337, "Localhost")
     }
