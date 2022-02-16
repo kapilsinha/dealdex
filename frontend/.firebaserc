@@ -1,5 +1,20 @@
 {
   "projects": {
     "default": "poggers-eb88a"
+  },
+  "targets": {
+    "poggers-eb88a": {
+      "hosting": {
+        "flowinvestments": [
+          "flowinvestments"
+        ],
+        "faucetdao": [
+          "faucetdao"
+        ],
+        "poggers": [
+          "poggers-eb88a"
+        ]
+      }
+    }
   }
 }
