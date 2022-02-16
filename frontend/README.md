@@ -61,14 +61,21 @@ npx hardhat printState --network localhost
 4. Go to Settings -> Advanced -> Reset Account if necessary
 5. Go to the Create a Deal form and create a deal. Use the startup token address listed when you ran scripts/deploy.js
 
+## Deploy smart contracts with Remix
+1. Select network in metamask.
+2. Follow instructions here: https://ethereum.stackexchange.com/questions/87108/how-to-import-multiple-folders-into-remix
+
 ## Hosting on Firebase
+Adding new hosting targets: https://firebase.google.com/docs/cli/targets
 ```
 # Configure for testnet deployment
 npx hardhat configureForTestnet
 
 npm run build
 firebase emulators:start // Test on local machine
-firebase deploy --only hosting // Deploy live
+firebase deploy --only hosting:faucetdao  // Deploy to faucetdao.dealdex.io
+firebase deploy --only hosting:flowinvestments  // Deploy to flowinvestments.dealdex.io
+firebase deploy --only hosting:poggers  // Deploy to app.dealdex.io and testnet.dealdex.io
 firebase hosting:channel:deploy CHANNEL_ID // Deploy to a preview url
 ```
 
