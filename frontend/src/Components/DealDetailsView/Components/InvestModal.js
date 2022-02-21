@@ -40,6 +40,7 @@ export default function InvestModal(props) {
     const [email, setEmail] = useState("")
     const [telegramUsername, setTelegramUsername] = useState("")
     const [discordUsername, setDiscordUsername] = useState("")
+    const [twitterUsername, setTwitterUsername] = useState("")
 
     useEffect(async () => {
         if (!user) {
@@ -54,6 +55,7 @@ export default function InvestModal(props) {
                 setEmail(contactInfo.getEmail() || "")
                 setTelegramUsername(contactInfo.getTelegramUsername() || "")
                 setDiscordUsername(contactInfo.getDiscordUsername() || "")
+                setTwitterUsername(contactInfo.getTwitterUsername() || "")
             }
         }
         setNftId(props.nftId)
@@ -131,7 +133,7 @@ export default function InvestModal(props) {
     async function updateContactInfo() {
         setIsLoading(true)
         console.log(currentUser)
-        await currentUser.updateContactInfo(ContactInfo.createContactInfo(email, telegramUsername, discordUsername))
+        await currentUser.updateContactInfo(ContactInfo.createContactInfo(email, telegramUsername, discordUsername, twitterUsername))
         setIsLoading(false)
     }
 
@@ -147,6 +149,10 @@ export default function InvestModal(props) {
 
     function isValidTelegramUsername(telegramUsername) {
         return telegramUsername != ""
+    }
+
+    function isValidTwitterUsername(twitterUsername) {
+        return twitterUsername != ""
     }
 
     return(
@@ -200,6 +206,19 @@ export default function InvestModal(props) {
                         verified = {isValidDiscordUsername(discordUsername)}
                         isRequired = {false}
                         helperText = "Your Discord username"
+                        errorText = "Enter a valid username."
+                    />
+
+                    <DealDexTextForm 
+                        title="Twitter Username"
+                        colSpan={2}
+                        onChange = {e => setTwitterUsername(e.target.value)}
+                        value = {twitterUsername}
+                        width="100%"
+                        onBlur = {e => setTwitterUsername(e.target.value.trim())}
+                        verified = {isValidTwitterUsername(twitterUsername)}
+                        isRequired = {false}
+                        helperText = "Your Twitter username"
                         errorText = "Enter a valid username."
                     />
                 </ModalBody>

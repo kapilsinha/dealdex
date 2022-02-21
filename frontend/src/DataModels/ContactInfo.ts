@@ -28,16 +28,22 @@ export default class ContactInfo extends Moralis.Object {
         return this.get("discordUsername")
     }
 
+    getTwitterUsername(): string | null {
+        return this.get("twitterUsername")
+    }
+
     static createContactInfo(
         email: string | null = null,
         telegramUsername: string | null = null,
-        discordUsername: string | null = null
+        discordUsername: string | null = null,
+        twitterUsername: string | null = null,
        ): ContactInfo
     {
         let contactInfo = new ContactInfo()
         contactInfo.set("email", email)
         contactInfo.set("telegramUsername", telegramUsername)
         contactInfo.set("discordUsername", discordUsername)
+        contactInfo.set("twitterUsername", twitterUsername)
         return contactInfo
     }
 }

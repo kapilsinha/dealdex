@@ -32,7 +32,14 @@ export default class NetworkUser extends Moralis.Object {
     async getContactInfo(): Promise<ContactInfo | null> {
         let contactInfo = this.get("contactInfo")
         if (contactInfo) {
-            await contactInfo.fetch()
+            try {
+                await contactInfo.fetch()
+            } catch (err) {
+                // This isn't all that unexpected. If the user was just created and not saved yet,
+                // then this contactInfo is not in the db. That said, if it is, we might as well
+                // refresh the local object
+                console.log("ContactInfo not found in db, user was likely just created:", err);
+            }
             return contactInfo
         } else {
             return null
